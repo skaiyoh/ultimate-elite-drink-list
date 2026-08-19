@@ -359,14 +359,20 @@ the algorithm rather than from special-casing.
 (not dealt last round) and *stale* (dealt last round). Shuffle each; take up to
 7 from fresh, then top up from stale only if fresh runs short.
 
-A fixed threshold — "exclude the previous round when the pool has at least N" —
-is degenerate near its own boundary. At a pool of exactly 14, excluding 7 leaves
-exactly 7, so every round is forced to be the exact complement of the last and
-the drill alternates between two fixed tickets forever. Just below the threshold,
-freshness switches off entirely. The 13-drink martini pool sits precisely in that
-dead zone. Two-tier selection has no constant to tune, degrades smoothly at every
-pool size from 7 upward, and stays maximally fresh at all of them: martinis deal
+The rule this replaces — "exclude the previous round when the pool has at least
+N" — has a cliff at N. Below it freshness is off entirely; at or above it,
+exclusion is absolute. The 13-drink martini pool falls below any sensible N and
+would get no freshness at all. Two-tier has no constant to tune, applies at every
+pool size from 7 upward, and is maximally fresh at all of them: martinis deal
 6 fresh + 1 stale, shots draw 7 from 24 fresh.
+
+**Known and accepted:** at a pool of exactly 14 the fresh tier is exactly 7, so
+consecutive rounds alternate between two fixed drink sets (quantities still
+re-roll each round). That is forced by arithmetic rather than by the rule —
+choosing 7 distinct drinks that avoid the previous 7 out of 14 has exactly one
+solution, and no repeat-avoidance policy can escape it. None of the seeded
+categories sits at 14. A test documents the behavior so it is not mistaken for
+a bug.
 
 **Guards:**
 
