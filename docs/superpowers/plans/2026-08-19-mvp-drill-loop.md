@@ -793,6 +793,7 @@ Seed merge is the subtle part: it must add newly-shipped drinks without overwrit
 // src/lib/drinks/repository.test.ts
 import { describe, expect, it } from 'vitest';
 import { SEED_DRINKS, SEED_VERSION } from '@/data/seed-drinks';
+import { STORAGE_KEYS } from '@/lib/storage/localStore';
 import {
   categoryMap, initialDrinkList, loadDrinkList, mergeSeed, poolFor, saveDrinkList,
 } from '@/lib/drinks/repository';
@@ -847,7 +848,7 @@ describe('loadDrinkList', () => {
   });
 
   it('falls back to the seed when stored data is corrupt', () => {
-    window.localStorage.setItem('ueddl:v1:drinks', '{"schemaVersion":"wrong"}');
+    window.localStorage.setItem(STORAGE_KEYS.drinks, '{"schemaVersion":"wrong"}');
     expect(loadDrinkList().drinks).toHaveLength(SEED_DRINKS.length);
   });
 
@@ -985,7 +986,7 @@ Profiles separate history on a shared device. They are not authentication — no
   - `renameProfile(list, id, name): Profile[]` — pure
   - `removeProfile(list, id): Profile[]` — pure
   - `loadProfiles(): Profile[]`, `saveProfiles(list): WriteOutcome`
-  - `loadActiveProfileId(): string | null`, `saveActiveProfileId(id: string | null): void`
+  - `loadActiveProfileId(): string | null`, `saveActiveProfileId(id: string | null): WriteOutcome`
 
 Ids and timestamps are parameters rather than generated inside, so every function is deterministic and testable.
 
@@ -999,6 +1000,7 @@ import {
   renameProfile, saveActiveProfileId, saveProfiles,
 } from '@/lib/profiles/repository';
 import type { Profile } from '@/lib/profiles/types';
+import { STORAGE_KEYS } from '@/lib/storage/localStore';
 
 const base: Profile[] = [
   { id: 'p1', name: 'Nathan', createdAt: 1000 },
@@ -1044,7 +1046,7 @@ describe('persistence', () => {
   });
 
   it('returns an empty list when stored data is corrupt', () => {
-    window.localStorage.setItem('ueddl:v1:profiles', '[{"id":1}]');
+    window.localStorage.setItem(STORAGE_KEYS.profiles, '[{"id":1}]');
     expect(loadProfiles()).toEqual([]);
   });
 
@@ -1053,6 +1055,9 @@ describe('persistence', () => {
     expect(loadActiveProfileId()).toBe('p1');
     saveActiveProfileId(null);
     expect(loadActiveProfileId()).toBeNull();
+    // Asserting the read value alone cannot tell `removeValue` apart from
+    // writing the JSON string "null" — check the key is genuinely gone.
+    expect(window.localStorage.getItem(STORAGE_KEYS.activeProfile)).toBeNull();
   });
 });
 ```
@@ -1118,12 +1123,17 @@ export function loadActiveProfileId(): string | null {
   return readValue(STORAGE_KEYS.activeProfile, (raw) => (typeof raw === 'string' ? raw : null));
 }
 
-export function saveActiveProfileId(id: string | null): void {
+/**
+ * Returns the outcome rather than swallowing it, matching `saveProfiles`.
+ * Callers may ignore it — losing this pointer costs one tap, not data — but an
+ * ignored return value is visible in a way that a discarded one is not.
+ */
+export function saveActiveProfileId(id: string | null): WriteOutcome {
   if (id === null) {
     removeValue(STORAGE_KEYS.activeProfile);
-    return;
+    return 'ok';
   }
-  writeValue(STORAGE_KEYS.activeProfile, id);
+  return writeValue(STORAGE_KEYS.activeProfile, id);
 }
 ```
 
