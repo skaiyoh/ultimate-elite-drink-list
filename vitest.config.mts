@@ -2,6 +2,24 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
 
+// Recent Node builds ship a native `localStorage` global on by default.
+// Without a configured --localstorage-file it resolves to a bare object
+// with none of the Storage prototype methods. Vitest's jsdom environment
+// only forwards jsdom's `window.localStorage` onto the test globals when
+// the name isn't already present on the Node global (see `getWindowKeys`
+// in vitest/dist/chunks/index.*.js), so that broken native stub silently
+// shadows jsdom's real Storage — breaking `window.localStorage` (and
+// vitest.setup.ts's `beforeEach` clear()) for every test.
+// --no-experimental-webstorage removes the competing global.
+//
+// Guarded by feature detection, not a Node version: the flag is only
+// passed to workers on builds that actually ship the global, which are
+// exactly the builds that recognize the negation flag — so this
+// self-adapts instead of hardcoding a version number that can drift out
+// of sync. The vitest worker forks from this same process with no
+// execPath override, so detecting here correctly predicts the worker.
+const hasNativeWebStorage = 'localStorage' in globalThis;
+
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -13,17 +31,7 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
     passWithNoTests: true,
-    // This Node build (v25.4.0) ships a native `localStorage` global on by
-    // default (--webstorage). Without a configured --localstorage-file, it
-    // resolves to a bare object with none of the Storage prototype methods.
-    // Vitest's jsdom environment only forwards a jsdom window property onto
-    // the test globals when the name isn't already present on the Node
-    // global, so that broken native stub silently shadows jsdom's real,
-    // working Storage — breaking `window.localStorage` (and
-    // vitest.setup.ts's `beforeEach` clear()) for every test. Disabling the
-    // feature in the worker process restores jsdom's Storage as the one
-    // tests see.
-    execArgv: ['--no-experimental-webstorage'],
+    execArgv: hasNativeWebStorage ? ['--no-experimental-webstorage'] : [],
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,tsx}'],
