@@ -1,0 +1,19 @@
+/* src/components/play/play.css */
+.ticket { list-style: none; margin: 0; padding: var(--space-2); background: var(--color-docket); color: var(--color-ink); border-radius: var(--radius); }
+.ticket__line { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-2); padding: var(--space-1) 0; border-bottom: 1px solid var(--color-line); }
+.ticket__line:last-child { border-bottom: 0; }
+.ticket__name { font-size: var(--text-drink); }
+.ticket__qty { font-size: var(--text-drink); color: var(--color-accent); font-weight: 700; }
+
+.clock { display: grid; justify-items: center; margin: var(--space-3) 0; }
+.clock__label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-muted); }
+.clock__value { font-size: var(--text-clock); line-height: 1; font-variant-numeric: tabular-nums; }
+.clock__goal { font-size: 0.9rem; color: var(--color-muted); }
+.clock[data-over='true'] .clock__value { color: var(--color-miss); }
+.clock[data-paused='true'] .clock__value { opacity: 0.5; }
+
+.rest { display: grid; justify-items: center; gap: var(--space-1); padding: var(--space-3); border: 1px solid var(--color-line); border-radius: var(--radius); }
+.rest__time { font-size: var(--text-clock); line-height: 1; margin: 0; }
+.rest[data-verdict='pass'] .rest__time { color: var(--color-pass); }
+.rest[data-verdict='miss'] .rest__time { color: var(--color-miss); }
+.rest__average, .rest__units { color: var(--color-muted); margin: 0; }
