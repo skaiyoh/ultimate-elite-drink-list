@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { defaultSessionConfig } from '@/lib/session/config';
 import { createSession, sessionReducer, toRecord } from '@/lib/session/machine';
 import {
-  clearActiveSession, commitSession, loadActiveSession, loadPrefs,
+  clearActiveSession, commitSession, loadActiveSession, loadHistory, loadPrefs,
   loadSession, loadSessionIndex, saveActiveSession, savePrefs,
 } from '@/lib/session/repository';
 import type { TicketLine } from '@/lib/session/types';
@@ -107,6 +107,40 @@ describe('committed sessions', () => {
     expect(outcome).toBe('quota');
     expect(loadSessionIndex('p1')).toEqual([]);
     expect(loadSession('s1')).toBeNull();
+  });
+});
+
+describe('history', () => {
+  const record = toRecord(createSession('s1', 'p1', config, 1_000));
+
+  it('is empty for a profile that has never finished a session', () => {
+    expect(loadHistory('p1')).toEqual([]);
+  });
+
+  it('returns every committed session, newest first', () => {
+    commitSession(record);
+    commitSession({ ...record, id: 's2', startedAt: 2_000 });
+    expect(loadHistory('p1').map((s) => s.id)).toEqual(['s2', 's1']);
+  });
+
+  it('skips an indexed session whose record has gone missing', () => {
+    commitSession(record);
+    commitSession({ ...record, id: 's2', startedAt: 2_000 });
+    window.localStorage.removeItem(STORAGE_KEYS.session('s2'));
+    expect(loadHistory('p1').map((s) => s.id)).toEqual(['s1']);
+  });
+
+  it('skips a corrupt record and leaves the others intact', () => {
+    commitSession(record);
+    commitSession({ ...record, id: 's2', startedAt: 2_000 });
+    window.localStorage.setItem(STORAGE_KEYS.session('s2'), '{"id":"s2","rounds":"lots"}');
+    expect(loadHistory('p1').map((s) => s.id)).toEqual(['s1']);
+  });
+
+  it('keeps profiles separate', () => {
+    commitSession(record);
+    commitSession({ ...record, id: 's9', profileId: 'p2' });
+    expect(loadHistory('p2').map((s) => s.id)).toEqual(['s9']);
   });
 });
 

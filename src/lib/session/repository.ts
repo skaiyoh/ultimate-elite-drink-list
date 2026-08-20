@@ -58,6 +58,18 @@ export function loadSession(sessionId: string): SessionRecord | null {
   return readValue(STORAGE_KEYS.session(sessionId), parseSessionRecord);
 }
 
+/**
+ * Every committed session for a profile, newest first.
+ *
+ * A record that is missing or fails validation is skipped rather than thrown
+ * on: one corrupt key must not take down the whole history screen (spec §11).
+ */
+export function loadHistory(profileId: string): SessionRecord[] {
+  return loadSessionIndex(profileId)
+    .map(loadSession)
+    .filter((record): record is SessionRecord => record !== null);
+}
+
 export function savePrefs(profileId: string, config: SessionConfig): WriteOutcome {
   return writeValue(STORAGE_KEYS.prefs(profileId), config);
 }
