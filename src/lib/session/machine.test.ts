@@ -100,6 +100,16 @@ describe('advance', () => {
     const resting = fresh();
     expect(sessionReducer(resting, { type: 'advance', at: 1 })).toBe(resting);
   });
+
+  it('clamps durationMs to zero rather than negative when at precedes startedAt', () => {
+    // A backwards wall-clock jump (NTP step, manual clock change) must not
+    // silently produce a "negative" round. The clamp turns it into an
+    // implausibly SHORT round instead — not correct, but at least intentional
+    // and pinned by this test rather than an accident. See spec §7.
+    const running = sessionReducer(fresh(), { type: 'startRound', ticket, at: 100_000 });
+    const rested = sessionReducer(running, { type: 'advance', at: 50_000 });
+    expect(rested.rounds[0].durationMs).toBe(0);
+  });
 });
 
 describe('end', () => {

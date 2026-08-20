@@ -175,4 +175,41 @@ describe('useSessionMachine', () => {
     await act(async () => { result.current.advance(); });
     expect(result.current.storageWarning).toBeNull();
   });
+
+  it('keeps the crash-recovery backup when the final round fails to commit', async () => {
+    // Regression test for CRITICAL 2: a failed commitSession must not delete
+    // the active-session backup, or a refresh would lose every completed
+    // round even though React still has them rendered on screen.
+    const { result } = await mountWithSession(2);
+    await act(async () => { result.current.startRound(); });
+    vi.setSystemTime(START + 100_000);
+    await act(async () => { result.current.advance(); });
+    expect(loadActiveSession()?.rounds).toHaveLength(1);
+
+    // A stateful stub, unlike the throw-everything stub used above:
+    // getItem/removeItem must behave for real so the assertions below can
+    // tell "backup kept" apart from "backup deleted" — only setItem needs to
+    // fail, which is what an actual full quota looks like.
+    const backing = new Map<string, string>();
+    for (let i = 0; i < window.localStorage.length; i += 1) {
+      const key = window.localStorage.key(i);
+      if (key !== null) backing.set(key, window.localStorage.getItem(key)!);
+    }
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => backing.get(key) ?? null,
+      setItem: () => { const e = new Error('full'); e.name = 'QuotaExceededError'; throw e; },
+      removeItem: (key: string) => { backing.delete(key); },
+    });
+
+    await act(async () => { result.current.startRound(); });
+    vi.setSystemTime(START + 300_000);
+    await act(async () => { result.current.advance(); });
+
+    expect(result.current.state?.status).toBe('complete');
+    expect(result.current.storageWarning).toBe('quota');
+    expect(loadActiveSession()).not.toBeNull();
+    expect(loadActiveSession()?.rounds).toHaveLength(1);
+
+    vi.unstubAllGlobals();
+  });
 });

@@ -1,7 +1,12 @@
 :root {
+  color-scheme: light dark;
+
   --color-ground:  oklch(96% 0.008 85);
   --color-docket:  oklch(99% 0.004 85);
+  /* Text ON the docket. Dark in BOTH themes — the paper stays light. */
   --color-ink:     oklch(20% 0.010 60);
+  /* Text on the page ground. This is the one that must flip with the theme. */
+  --color-ink-on-ground: oklch(20% 0.010 60);
   --color-muted:   oklch(48% 0.010 60);
   --color-accent:  oklch(62% 0.130 75);
   --color-pass:    oklch(52% 0.150 150);
@@ -27,6 +32,7 @@
     --color-ground: oklch(16% 0.010 60);
     --color-docket: oklch(96% 0.012 85);
     --color-ink:    oklch(20% 0.010 60);
+    --color-ink-on-ground: oklch(92% 0.008 85);
     --color-muted:  oklch(62% 0.010 60);
     --color-accent: oklch(74% 0.130 75);
     --color-pass:   oklch(72% 0.160 150);
@@ -39,6 +45,7 @@
   --color-ground: oklch(16% 0.010 60);
   --color-docket: oklch(96% 0.012 85);
   --color-ink:    oklch(20% 0.010 60);
+  --color-ink-on-ground: oklch(92% 0.008 85);
   --color-muted:  oklch(62% 0.010 60);
   --color-accent: oklch(74% 0.130 75);
   --color-pass:   oklch(72% 0.160 150);

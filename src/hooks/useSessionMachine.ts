@@ -68,7 +68,11 @@ export function useSessionMachine(): SessionMachine {
     let outcome;
     if (next.status === 'complete') {
       outcome = commitSession(toRecord(next));
-      clearActiveSession();
+      // Only clear the crash-recovery backup once the commit actually lands —
+      // if commitSession fails (e.g. quota), the backup is the only copy of
+      // every completed round, and deleting it here would destroy the session
+      // React still has rendered on screen.
+      if (outcome === 'ok') clearActiveSession();
     } else {
       outcome = saveActiveSession(next);
     }

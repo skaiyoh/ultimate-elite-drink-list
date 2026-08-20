@@ -2,6 +2,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { SEED_CATEGORIES } from '@/data/seed-drinks';
+import { StorageWarning } from '@/components/play/StorageWarning';
 import { useProfiles } from '@/components/profile/ProfileProvider';
 import { categoryMap, loadDrinkList, poolFor } from '@/lib/drinks/repository';
 import type { CategoryId, DrinkListState } from '@/lib/drinks/types';
@@ -14,12 +15,14 @@ import type { DifficultyId } from '@/lib/session/types';
 import { createSession } from '@/lib/session/machine';
 import { loadPrefs, saveActiveSession, savePrefs } from '@/lib/session/repository';
 import { setupIssues } from '@/lib/session/setupGuards';
+import type { WriteOutcome } from '@/lib/storage/localStore';
 
 export default function SetupPage() {
   const router = useRouter();
   const { hydrated, activeProfile } = useProfiles();
   const [config, setConfig] = useState(defaultSessionConfig);
   const [drinks, setDrinks] = useState<DrinkListState | null>(null);
+  const [startWarning, setStartWarning] = useState<Exclude<WriteOutcome, 'ok'> | null>(null);
 
   useEffect(() => {
     // Same hydration-guard idiom as useHydrated/ProfileProvider (Task 10): a
@@ -51,13 +54,22 @@ export default function SetupPage() {
     }));
 
   const start = () => {
+    // savePrefs's outcome is deliberately discarded: losing remembered
+    // defaults costs the user one re-selection next time, which isn't worth
+    // blocking Start over. saveActiveSession is different — without it /play
+    // finds no session and dead-ends, so its outcome gates navigation.
     savePrefs(activeProfile.id, config);
-    saveActiveSession(createSession(crypto.randomUUID(), activeProfile.id, config, Date.now()));
+    const outcome = saveActiveSession(createSession(crypto.randomUUID(), activeProfile.id, config, Date.now()));
+    if (outcome !== 'ok') {
+      setStartWarning(outcome);
+      return;
+    }
     router.push('/play');
   };
 
   return (
     <main>
+      <StorageWarning warning={startWarning} />
       <h1>Set up a session</h1>
 
       <fieldset>

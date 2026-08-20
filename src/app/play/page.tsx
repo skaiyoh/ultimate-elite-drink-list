@@ -66,7 +66,7 @@ export default function PlayPage() {
     return (
       <main>
         <StorageWarning warning={storageWarning} />
-        <h1>Session complete</h1>
+        <h1>{state.completedAt === null ? 'Session ended early' : 'Session complete'}</h1>
         <p>Average {averageMs === null ? '—' : formatDuration(averageMs)} against a {formatDuration(config.goalMs)} goal</p>
         <ol aria-label="Round times">
           {rounds.map((round) => (

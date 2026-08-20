@@ -30,8 +30,8 @@ describe('mergeSeed', () => {
 
   it('never overwrites a user edit to an existing drink', () => {
     const merged = mergeSeed(stale);
-    const edited = merged.drinks.find((d) => d.id === 'seed:green-tea-shot');
-    expect(edited).toEqual({ id: 'seed:green-tea-shot', name: 'GT (house)', categoryId: 'shot', enabled: false });
+    const matches = merged.drinks.filter((d) => d.id === 'seed:green-tea-shot');
+    expect(matches).toEqual([{ id: 'seed:green-tea-shot', name: 'GT (house)', categoryId: 'shot', enabled: false }]);
   });
 
   it('never resurrects a removed seed drink', () => {

@@ -5,7 +5,7 @@
 body {
   margin: 0;
   background: var(--color-ground);
-  color: var(--color-ink);
+  color: var(--color-ink-on-ground);
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
   font-size: var(--text-body);
   font-variant-numeric: tabular-nums;
