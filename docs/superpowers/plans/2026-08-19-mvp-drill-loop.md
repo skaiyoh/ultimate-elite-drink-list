@@ -230,11 +230,15 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: 'html',
-  use: { baseURL: 'http://localhost:3000', trace: 'on-first-retry' },
+  // Port 3100, not Next's default 3000. With `reuseExistingServer` set, a
+  // foreign app already listening on 3000 would be silently adopted and the
+  // whole suite would run against the wrong application — failing with
+  // baffling selector errors, or worse, appearing to pass.
+  use: { baseURL: 'http://localhost:3100', trace: 'on-first-retry' },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: 'npm run build && npm run start',
-    url: 'http://localhost:3000',
+    command: 'npm run build && npm run start -- -p 3100',
+    url: 'http://localhost:3100',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
@@ -2902,7 +2906,7 @@ npm run build
 tmux new-session -d -s ueddl "npm run start"
 ```
 
-Open `http://localhost:3000`, create a profile, continue to Setup. Two checks:
+Open `http://localhost:3100`, create a profile, continue to Setup. Two checks:
 - Leave only Martinis checked and pick Rush — the "top out at 14" warning appears and Start stays enabled.
 - Uncheck every category — the blocking message appears and Start is disabled.
 
@@ -3936,7 +3940,7 @@ git commit -m "feat: surface storage unavailability and quota failures"
 - Create: `e2e/drill.spec.ts`
 
 **Interfaces:**
-- Consumes: the running application at `http://localhost:3000`
+- Consumes: the running application at `http://localhost:3100`
 - Produces: nothing importable — this is the outermost safety net
 
 - [ ] **Step 1: Write the specs**
