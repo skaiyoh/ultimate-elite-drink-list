@@ -3644,7 +3644,7 @@ Spec §11 requires two failures to reach the user rather than being swallowed: l
 - Consumes: `isPersistent` from `@/lib/storage/localStore`; `useHydrated` from `@/hooks/useHydrated`
 - Produces:
   - `<StorageBanner />`
-  - `SessionMachine.storageWarning: 'quota' | 'unavailable' | null`
+  - `SessionMachine.storageWarning: 'quota' | 'unavailable' | 'invalid' | null` — four members, mirroring `WriteOutcome`
 
 - [ ] **Step 1: Write the failing test**
 
