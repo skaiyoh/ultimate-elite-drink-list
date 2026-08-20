@@ -1,6 +1,6 @@
 export { STORAGE_KEYS } from '@/lib/storage/keys';
 
-export type WriteOutcome = 'ok' | 'quota' | 'unavailable';
+export type WriteOutcome = 'ok' | 'quota' | 'unavailable' | 'invalid';
 
 /** Used when localStorage throws on access — Safari private mode, blocked cookies. */
 const memory = new Map<string, string>();
@@ -34,11 +34,27 @@ export function readValue<T>(key: string, validate: (raw: unknown) => T | null):
   } catch {
     return null;
   }
-  return validate(parsed);
+  // The validator is caller-supplied and may throw on an unexpected-but-valid
+  // JSON shape rather than returning null. Treat a throw as a rejection — the
+  // whole point of this function is that a corrupt key cannot take down a screen.
+  try {
+    return validate(parsed);
+  } catch {
+    return null;
+  }
 }
 
 export function writeValue(key: string, value: unknown): WriteOutcome {
-  const serialized = JSON.stringify(value);
+  // Serialization is its own failure mode — a circular reference or a BigInt
+  // throws here, which has nothing to do with storage availability. Kept in a
+  // separate try so the storage branches below can rely on `serialized`.
+  let serialized: string;
+  try {
+    serialized = JSON.stringify(value);
+  } catch {
+    return 'invalid';
+  }
+
   try {
     window.localStorage.setItem(key, serialized);
     return 'ok';

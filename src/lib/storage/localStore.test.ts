@@ -35,6 +35,11 @@ describe('readValue', () => {
     writeValue('ueddl:v1:n', 'a string');
     expect(readValue('ueddl:v1:n', asNumber)).toBeNull();
   });
+
+  it('returns null when the validator throws', () => {
+    writeValue('ueddl:v1:obj', { nothing: true });
+    expect(readValue('ueddl:v1:obj', (raw) => (raw as { items: number[] }).items.length)).toBeNull();
+  });
 });
 
 describe('writeValue', () => {
@@ -57,6 +62,12 @@ describe('writeValue', () => {
     expect(readValue('ueddl:v1:n', asNumber)).toBe(7);
     expect(isPersistent()).toBe(false);
   });
+
+  it('returns invalid for a non-serializable value', () => {
+    const circular: Record<string, unknown> = {};
+    circular.self = circular;
+    expect(writeValue('ueddl:v1:circular', circular)).toBe('invalid');
+  });
 });
 
 describe('removeValue', () => {
@@ -64,5 +75,14 @@ describe('removeValue', () => {
     writeValue('ueddl:v1:n', 1);
     removeValue('ueddl:v1:n');
     expect(readValue('ueddl:v1:n', asNumber)).toBeNull();
+  });
+
+  it('does not throw when localStorage is unavailable', () => {
+    vi.stubGlobal('localStorage', {
+      getItem: () => { throw new Error('denied'); },
+      setItem: () => { throw new Error('denied'); },
+      removeItem: () => { throw new Error('denied'); },
+    });
+    expect(() => removeValue('ueddl:v1:n')).not.toThrow();
   });
 });
