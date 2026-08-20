@@ -13,6 +13,20 @@ body {
 
 main { max-width: 60rem; margin: 0 auto; padding: var(--space-4) var(--space-2); }
 
+/* Present to assistive tech, absent from the page. Used for the chart data
+   tables that stand in for the graphics, which are aria-hidden. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
