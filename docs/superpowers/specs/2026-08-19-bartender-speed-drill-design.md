@@ -651,8 +651,25 @@ label naming what it measures; the round verdict announces once on entry to
 
 ## 13. Performance budget
 
-App-class functionality held to a landing-page budget: **< 150KB JS gzipped**,
-**< 30KB CSS**, LCP < 2.5s, CLS < 0.1, INP < 200ms. No charting library, no animation library, no icon
+**< 300KB JS gzipped**, **< 30KB CSS**, LCP < 2.5s, CLS < 0.1, INP < 200ms.
+
+This is the app-page tier, not the landing-page tier, and the correction is
+evidence-driven. Measured at the Task 1 scaffold — a page containing nothing but
+an `<h1>` — the Next.js App Router + React framework runtime already costs
+**~130KB gzipped** across the chunks every route loads (excluding the polyfill
+chunk, which modern browsers skip). The original 150KB figure left roughly 20KB
+for every feature in the app, and Zod alone is ~13KB of that. The number was not
+reachable with the stack this spec selected; it was aspirational, not a budget.
+
+CSS is comfortable: the scaffold's production stylesheet is 939 bytes gzipped
+against 30KB, so the token-based approach has ample room.
+
+The disciplines that made the tight number plausible all still hold and are what
+keep this from drifting toward 300KB: no charting library (§8), no animation
+library, no icon package, and dynamic imports for anything heavy. If the smaller
+budget matters more than the framework, the lever is swapping Next.js for a Vite
+SPA — roughly 45KB baseline instead of 130KB — which is a Task 1-scoped change,
+not a rewrite. No charting library, no animation library, no icon
 package — inline SVG only. This is the main reason charts are hand-rolled.
 
 ---
