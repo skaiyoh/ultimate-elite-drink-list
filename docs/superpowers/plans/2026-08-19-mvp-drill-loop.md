@@ -546,7 +546,7 @@ The single module allowed to touch the `localStorage` API. Everything above it d
 - Produces:
   - `STORAGE_KEYS` — `{ drinks, profiles, activeProfile, activeSession, prefs(pid), sessionIndex(pid), session(sid) }`
   - `readValue<T>(key: string, validate: (raw: unknown) => T | null): T | null`
-  - `writeValue(key: string, value: unknown): WriteOutcome` where `WriteOutcome = 'ok' | 'quota' | 'unavailable'`
+  - `writeValue(key: string, value: unknown): WriteOutcome` where `WriteOutcome = 'ok' | 'quota' | 'unavailable' | 'invalid'`
   - `removeValue(key: string): void`
   - `isPersistent(): boolean`
 
@@ -591,9 +591,24 @@ describe('readValue', () => {
     writeValue('ueddl:v1:n', 'a string');
     expect(readValue('ueddl:v1:n', asNumber)).toBeNull();
   });
+
+  it('returns null when the validator throws instead of rejecting', () => {
+    writeValue('ueddl:v1:n', { nothing: true });
+    const throwingValidator = (raw: unknown): number | null => {
+      // The shape a careless downstream validator assumes but never checks.
+      return (raw as { items: number[] }).items.length;
+    };
+    expect(readValue('ueddl:v1:n', throwingValidator)).toBeNull();
+  });
 });
 
 describe('writeValue', () => {
+  it('reports a non-serializable value instead of throwing', () => {
+    const circular: Record<string, unknown> = {};
+    circular.self = circular;
+    expect(writeValue('ueddl:v1:bad', circular)).toBe('invalid');
+  });
+
   it('reports quota exhaustion instead of throwing', () => {
     vi.stubGlobal('localStorage', {
       getItem: () => null,
@@ -620,6 +635,15 @@ describe('removeValue', () => {
     writeValue('ueddl:v1:n', 1);
     removeValue('ueddl:v1:n');
     expect(readValue('ueddl:v1:n', asNumber)).toBeNull();
+  });
+
+  it('does not throw when storage is unavailable', () => {
+    vi.stubGlobal('localStorage', {
+      getItem: () => { throw new Error('denied'); },
+      setItem: () => { throw new Error('denied'); },
+      removeItem: () => { throw new Error('denied'); },
+    });
+    expect(() => removeValue('ueddl:v1:n')).not.toThrow();
   });
 });
 ```
@@ -652,7 +676,7 @@ export const STORAGE_KEYS = {
 // src/lib/storage/localStore.ts
 export { STORAGE_KEYS } from '@/lib/storage/keys';
 
-export type WriteOutcome = 'ok' | 'quota' | 'unavailable';
+export type WriteOutcome = 'ok' | 'quota' | 'unavailable' | 'invalid';
 
 /** Used when localStorage throws on access — Safari private mode, blocked cookies. */
 const memory = new Map<string, string>();
@@ -686,11 +710,28 @@ export function readValue<T>(key: string, validate: (raw: unknown) => T | null):
   } catch {
     return null;
   }
-  return validate(parsed);
+
+  // The validator is caller-supplied and may throw on an unexpected-but-valid
+  // JSON shape rather than returning null. Treat a throw as a rejection — the
+  // whole point of this function is that a corrupt key cannot take down a screen.
+  try {
+    return validate(parsed);
+  } catch {
+    return null;
+  }
 }
 
 export function writeValue(key: string, value: unknown): WriteOutcome {
-  const serialized = JSON.stringify(value);
+  // Serialization is its own failure mode — a circular reference or a BigInt
+  // throws here, which has nothing to do with storage availability. Kept in a
+  // separate try so the storage branches below can rely on `serialized`.
+  let serialized: string;
+  try {
+    serialized = JSON.stringify(value);
+  } catch {
+    return 'invalid';
+  }
+
   try {
     window.localStorage.setItem(key, serialized);
     return 'ok';
@@ -3508,7 +3549,7 @@ export interface SessionMachine {
   readonly averageMs: number | null;
   readonly lastRound: RoundRecord | null;
   /** Non-null when the last write failed. 'quota' means history needs pruning. */
-  readonly storageWarning: 'quota' | 'unavailable' | null;
+  readonly storageWarning: 'quota' | 'unavailable' | 'invalid' | null;
   startRound(): void;
   pause(): void;
   resume(): void;
@@ -3520,7 +3561,7 @@ export interface SessionMachine {
 Add the state, replace the body of `apply`, and add `storageWarning` to the returned object:
 
 ```tsx
-  const [storageWarning, setStorageWarning] = useState<'quota' | 'unavailable' | null>(null);
+  const [storageWarning, setStorageWarning] = useState<'quota' | 'unavailable' | 'invalid' | null>(null);
 
   const apply = useCallback((action: SessionAction) => {
     const previous = stateRef.current;
@@ -3569,7 +3610,9 @@ and add this immediately after the opening `<main>` tag of every branch that ren
         <p role="alert">
           {storageWarning === 'quota'
             ? "This device's storage is full — recent rounds may not have been saved."
-            : "Local storage is blocked, so this session won't be saved."}
+            : storageWarning === 'invalid'
+              ? "Something went wrong saving this round. Your earlier rounds are safe."
+              : "Local storage is blocked, so this session won't be saved."}
         </p>
       )}
 ```
