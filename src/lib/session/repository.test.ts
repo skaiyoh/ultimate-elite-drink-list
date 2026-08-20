@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { defaultSessionConfig } from '@/lib/session/config';
 import { createSession, sessionReducer, toRecord } from '@/lib/session/machine';
 import {
@@ -6,6 +6,7 @@ import {
   loadSession, loadSessionIndex, saveActiveSession, savePrefs,
 } from '@/lib/session/repository';
 import type { TicketLine } from '@/lib/session/types';
+import { STORAGE_KEYS } from '@/lib/storage/localStore';
 
 const ticket: TicketLine[] = [{ drinkId: 'a', name: 'A', categoryId: 'shot', quantity: 4 }];
 const config = defaultSessionConfig();
@@ -81,6 +82,31 @@ describe('committed sessions', () => {
 
   it('returns null for an unknown session id', () => {
     expect(loadSession('nope')).toBeNull();
+  });
+
+  it('leaves no orphaned record behind when the index write fails', () => {
+    // Spied on the prototype, not the instance: jsdom's Storage is proxy-backed,
+    // so defining `setItem` on the instance is treated as storing an item under
+    // that name and never shadows the method.
+    const real = Storage.prototype.setItem;
+    const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (this: Storage, key: string, value: string) {
+      if (key === STORAGE_KEYS.sessionIndex('p1')) {
+        const error = new Error('full');
+        error.name = 'QuotaExceededError';
+        throw error;
+      }
+      real.call(this, key, value);
+    });
+
+    const outcome = commitSession(record);
+    spy.mockRestore();
+
+    // A record the index cannot reach is invisible in history forever, which is
+    // worse than a clean failure: the caller keeps its crash-recovery backup
+    // only when it learns the commit failed.
+    expect(outcome).toBe('quota');
+    expect(loadSessionIndex('p1')).toEqual([]);
+    expect(loadSession('s1')).toBeNull();
   });
 });
 

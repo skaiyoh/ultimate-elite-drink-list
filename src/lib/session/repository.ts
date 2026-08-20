@@ -32,14 +32,26 @@ export function loadSessionIndex(profileId: string): string[] {
   return readValue(STORAGE_KEYS.sessionIndex(profileId), parseIdList) ?? [];
 }
 
-/** Sessions are append-only and immutable, so this is an O(1) write per session. */
+/**
+ * Sessions are append-only and immutable, so this is an O(1) write per session.
+ *
+ * The record and the index are two separate writes and localStorage has no
+ * transaction. If the second one fails, the first is rolled back: a record the
+ * index cannot reach is invisible in history forever, whereas a clean failure
+ * is reported to the caller, which still holds the crash-recovery backup. The
+ * rollback only ever removes a record this call just wrote or an equivalent
+ * orphan — an already-indexed id returns before reaching the index write.
+ */
 export function commitSession(record: SessionRecord): WriteOutcome {
   const written = writeValue(STORAGE_KEYS.session(record.id), record);
   if (written !== 'ok') return written;
 
   const index = loadSessionIndex(record.profileId);
   if (index.includes(record.id)) return 'ok';
-  return writeValue(STORAGE_KEYS.sessionIndex(record.profileId), [record.id, ...index]);
+
+  const indexed = writeValue(STORAGE_KEYS.sessionIndex(record.profileId), [record.id, ...index]);
+  if (indexed !== 'ok') removeValue(STORAGE_KEYS.session(record.id));
+  return indexed;
 }
 
 export function loadSession(sessionId: string): SessionRecord | null {
