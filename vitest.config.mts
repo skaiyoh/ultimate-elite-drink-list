@@ -13,6 +13,17 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
     passWithNoTests: true,
+    // This Node build (v25.4.0) ships a native `localStorage` global on by
+    // default (--webstorage). Without a configured --localstorage-file, it
+    // resolves to a bare object with none of the Storage prototype methods.
+    // Vitest's jsdom environment only forwards a jsdom window property onto
+    // the test globals when the name isn't already present on the Node
+    // global, so that broken native stub silently shadows jsdom's real,
+    // working Storage — breaking `window.localStorage` (and
+    // vitest.setup.ts's `beforeEach` clear()) for every test. Disabling the
+    // feature in the worker process restores jsdom's Storage as the one
+    // tests see.
+    execArgv: ['--no-experimental-webstorage'],
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,tsx}'],
