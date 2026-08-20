@@ -1,0 +1,54 @@
+:root {
+  color-scheme: light dark;
+
+  --color-ground:  oklch(96% 0.008 85);
+  --color-docket:  oklch(99% 0.004 85);
+  /* Text ON the docket. Dark in BOTH themes — the paper stays light. */
+  --color-ink:     oklch(20% 0.010 60);
+  /* Text on the page ground. This is the one that must flip with the theme. */
+  --color-ink-on-ground: oklch(20% 0.010 60);
+  --color-muted:   oklch(48% 0.010 60);
+  --color-accent:  oklch(62% 0.130 75);
+  --color-pass:    oklch(52% 0.150 150);
+  --color-miss:    oklch(52% 0.190 25);
+  --color-line:    oklch(85% 0.010 85);
+
+  --text-body:  clamp(0.95rem, 0.9rem + 0.2vw, 1.05rem);
+  --text-drink: clamp(1.15rem, 1rem + 0.6vw, 1.6rem);
+  --text-clock: clamp(3.5rem, 2rem + 8vw, 7rem);
+
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2.5rem;
+
+  --radius: 6px;
+  --duration-fast: 150ms;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --color-ground: oklch(16% 0.010 60);
+    --color-docket: oklch(96% 0.012 85);
+    --color-ink:    oklch(20% 0.010 60);
+    --color-ink-on-ground: oklch(92% 0.008 85);
+    --color-muted:  oklch(62% 0.010 60);
+    --color-accent: oklch(74% 0.130 75);
+    --color-pass:   oklch(72% 0.160 150);
+    --color-miss:   oklch(60% 0.190 25);
+    --color-line:   oklch(30% 0.010 60);
+  }
+}
+
+:root[data-theme='dark'] {
+  --color-ground: oklch(16% 0.010 60);
+  --color-docket: oklch(96% 0.012 85);
+  --color-ink:    oklch(20% 0.010 60);
+  --color-ink-on-ground: oklch(92% 0.008 85);
+  --color-muted:  oklch(62% 0.010 60);
+  --color-accent: oklch(74% 0.130 75);
+  --color-pass:   oklch(72% 0.160 150);
+  --color-miss:   oklch(60% 0.190 25);
+  --color-line:   oklch(30% 0.010 60);
+}

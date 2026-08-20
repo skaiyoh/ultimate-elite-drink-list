@@ -25,7 +25,7 @@ Every task's requirements implicitly include this section. Values are copied ver
 - **A round passes when `durationMs <= goalMs`** (inclusive at the boundary).
 - **No backend.** No API routes, no database, no network calls at runtime.
 - **Storage keys are namespaced `ueddl:v1:`.**
-- **Budget:** < 150KB JS gzipped. No charting library, no animation library, no icon package.
+- **Budget:** < 300KB JS gzipped, < 30KB CSS. No charting library, no animation library, no icon package. (Corrected after Task 1 measured the Next.js + React framework runtime at ~130KB gzipped on a page containing only an `<h1>`; the original 150KB left ~20KB for the whole app, and Zod alone is ~13KB of it.)
 - **Every screen that reads storage must render a hydration-safe placeholder first.** Reading `localStorage` during render breaks SSR.
 
 ---
@@ -77,7 +77,7 @@ Files that change together live together: each `lib/` domain folder owns its typ
 Nothing exists yet but `src/data/seed-drinks.ts` and `src/lib/drinks/types.ts`, which already import via the `@/*` alias. This task makes them compile and gives every later task a test command.
 
 **Files:**
-- Create: `package.json`, `tsconfig.json`, `next.config.ts`, `eslint.config.mjs`, `vitest.config.ts`, `vitest.setup.ts`, `playwright.config.ts`
+- Create: `package.json`, `tsconfig.json`, `next.config.ts`, `eslint.config.mjs`, `vitest.config.mts`, `vitest.setup.ts`, `playwright.config.ts`
 - Create: `src/app/layout.tsx`, `src/app/page.tsx`, `src/styles/tokens.css`, `src/styles/global.css`
 
 **Interfaces:**
@@ -176,10 +176,12 @@ export default [
 
 If `@eslint/eslintrc` is not already present, run `npm install -D @eslint/eslintrc`.
 
-- [ ] **Step 5: Create `vitest.config.ts` and `vitest.setup.ts`**
+- [ ] **Step 5: Create `vitest.config.mts` and `vitest.setup.ts`**
 
 ```ts
-// vitest.config.ts
+// vitest.config.mts
+// .mts, not .ts: unambiguously ESM regardless of package.json's "type" field,
+// which stops Vite's config loader printing a CJS/ESM warning on every test run.
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
@@ -228,11 +230,15 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: 'html',
-  use: { baseURL: 'http://localhost:3000', trace: 'on-first-retry' },
+  // Port 3100, not Next's default 3000. With `reuseExistingServer` set, a
+  // foreign app already listening on 3000 would be silently adopted and the
+  // whole suite would run against the wrong application — failing with
+  // baffling selector errors, or worse, appearing to pass.
+  use: { baseURL: 'http://localhost:3100', trace: 'on-first-retry' },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: 'npm run build && npm run start',
-    url: 'http://localhost:3000',
+    command: 'npm run build && npm run start -- -p 3100',
+    url: 'http://localhost:3100',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
@@ -357,7 +363,7 @@ export default function HomePage() {
 npm run typecheck && npm run build && npm test
 ```
 
-Expected: typecheck passes (proving `@/lib/drinks/types` resolves from `src/data/seed-drinks.ts`), build succeeds, and vitest reports "No test files found" — which is not a failure at this stage. If vitest exits non-zero on no tests, add `passWithNoTests: true` under `test:` in `vitest.config.ts`.
+Expected: typecheck passes (proving `@/lib/drinks/types` resolves from `src/data/seed-drinks.ts`), build succeeds, and vitest reports "No test files found" — which is not a failure at this stage. If vitest exits non-zero on no tests, add `passWithNoTests: true` under `test:` in `vitest.config.mts`.
 
 - [ ] **Step 10: Commit**
 
@@ -376,6 +382,7 @@ The seed list is data a human edits by hand. This task turns the manual checks a
 - Modify: `src/lib/drinks/types.ts` (append `DrinkListState`)
 - Create: `src/lib/drinks/schema.ts`
 - Test: `src/lib/drinks/schema.test.ts`
+- Modify: `vitest.config.mts`, `package.json`, and add `.nvmrc` — **added during execution.** Node 25 ships a native `localStorage` global with no `Storage` methods, and Vitest 4's jsdom environment declines to forward jsdom's real `Storage` onto `window` when the name already exists on the Node global. Without opting out, `window.localStorage` is broken for every test in the project. Task 1 could not have caught this: no test files existed yet.
 
 **Interfaces:**
 - Consumes: `Category`, `Drink`, `CategoryId`, `DrinkId` from `@/lib/drinks/types`; `SEED_CATEGORIES`, `SEED_DRINKS`, `SEED_VERSION` from `@/data/seed-drinks`
@@ -543,7 +550,7 @@ The single module allowed to touch the `localStorage` API. Everything above it d
 - Produces:
   - `STORAGE_KEYS` — `{ drinks, profiles, activeProfile, activeSession, prefs(pid), sessionIndex(pid), session(sid) }`
   - `readValue<T>(key: string, validate: (raw: unknown) => T | null): T | null`
-  - `writeValue(key: string, value: unknown): WriteOutcome` where `WriteOutcome = 'ok' | 'quota' | 'unavailable'`
+  - `writeValue(key: string, value: unknown): WriteOutcome` where `WriteOutcome = 'ok' | 'quota' | 'unavailable' | 'invalid'`
   - `removeValue(key: string): void`
   - `isPersistent(): boolean`
 
@@ -588,9 +595,24 @@ describe('readValue', () => {
     writeValue('ueddl:v1:n', 'a string');
     expect(readValue('ueddl:v1:n', asNumber)).toBeNull();
   });
+
+  it('returns null when the validator throws instead of rejecting', () => {
+    writeValue('ueddl:v1:n', { nothing: true });
+    const throwingValidator = (raw: unknown): number | null => {
+      // The shape a careless downstream validator assumes but never checks.
+      return (raw as { items: number[] }).items.length;
+    };
+    expect(readValue('ueddl:v1:n', throwingValidator)).toBeNull();
+  });
 });
 
 describe('writeValue', () => {
+  it('reports a non-serializable value instead of throwing', () => {
+    const circular: Record<string, unknown> = {};
+    circular.self = circular;
+    expect(writeValue('ueddl:v1:bad', circular)).toBe('invalid');
+  });
+
   it('reports quota exhaustion instead of throwing', () => {
     vi.stubGlobal('localStorage', {
       getItem: () => null,
@@ -617,6 +639,15 @@ describe('removeValue', () => {
     writeValue('ueddl:v1:n', 1);
     removeValue('ueddl:v1:n');
     expect(readValue('ueddl:v1:n', asNumber)).toBeNull();
+  });
+
+  it('does not throw when storage is unavailable', () => {
+    vi.stubGlobal('localStorage', {
+      getItem: () => { throw new Error('denied'); },
+      setItem: () => { throw new Error('denied'); },
+      removeItem: () => { throw new Error('denied'); },
+    });
+    expect(() => removeValue('ueddl:v1:n')).not.toThrow();
   });
 });
 ```
@@ -649,7 +680,7 @@ export const STORAGE_KEYS = {
 // src/lib/storage/localStore.ts
 export { STORAGE_KEYS } from '@/lib/storage/keys';
 
-export type WriteOutcome = 'ok' | 'quota' | 'unavailable';
+export type WriteOutcome = 'ok' | 'quota' | 'unavailable' | 'invalid';
 
 /** Used when localStorage throws on access — Safari private mode, blocked cookies. */
 const memory = new Map<string, string>();
@@ -683,11 +714,28 @@ export function readValue<T>(key: string, validate: (raw: unknown) => T | null):
   } catch {
     return null;
   }
-  return validate(parsed);
+
+  // The validator is caller-supplied and may throw on an unexpected-but-valid
+  // JSON shape rather than returning null. Treat a throw as a rejection — the
+  // whole point of this function is that a corrupt key cannot take down a screen.
+  try {
+    return validate(parsed);
+  } catch {
+    return null;
+  }
 }
 
 export function writeValue(key: string, value: unknown): WriteOutcome {
-  const serialized = JSON.stringify(value);
+  // Serialization is its own failure mode — a circular reference or a BigInt
+  // throws here, which has nothing to do with storage availability. Kept in a
+  // separate try so the storage branches below can rely on `serialized`.
+  let serialized: string;
+  try {
+    serialized = JSON.stringify(value);
+  } catch {
+    return 'invalid';
+  }
+
   try {
     window.localStorage.setItem(key, serialized);
     return 'ok';
@@ -734,7 +782,7 @@ Seed merge is the subtle part: it must add newly-shipped drinks without overwrit
 - Test: `src/lib/drinks/repository.test.ts`
 
 **Interfaces:**
-- Consumes: `parseDrinkListState`, `DRINKS_SCHEMA_VERSION`, `DRINKS_PER_ROUND` from `@/lib/drinks/schema`; `readValue`, `writeValue`, `STORAGE_KEYS` from `@/lib/storage/localStore`; `SEED_DRINKS`, `SEED_CATEGORIES`, `SEED_VERSION` from `@/data/seed-drinks`
+- Consumes: `parseDrinkListState`, `DRINKS_SCHEMA_VERSION` from `@/lib/drinks/schema`; `readValue`, `writeValue`, `STORAGE_KEYS` from `@/lib/storage/localStore`; `SEED_DRINKS`, `SEED_CATEGORIES`, `SEED_VERSION` from `@/data/seed-drinks`
 - Produces:
   - `initialDrinkList(): DrinkListState`
   - `mergeSeed(state: DrinkListState): DrinkListState` — pure
@@ -749,6 +797,7 @@ Seed merge is the subtle part: it must add newly-shipped drinks without overwrit
 // src/lib/drinks/repository.test.ts
 import { describe, expect, it } from 'vitest';
 import { SEED_DRINKS, SEED_VERSION } from '@/data/seed-drinks';
+import { STORAGE_KEYS } from '@/lib/storage/localStore';
 import {
   categoryMap, initialDrinkList, loadDrinkList, mergeSeed, poolFor, saveDrinkList,
 } from '@/lib/drinks/repository';
@@ -803,7 +852,7 @@ describe('loadDrinkList', () => {
   });
 
   it('falls back to the seed when stored data is corrupt', () => {
-    window.localStorage.setItem('ueddl:v1:drinks', '{"schemaVersion":"wrong"}');
+    window.localStorage.setItem(STORAGE_KEYS.drinks, '{"schemaVersion":"wrong"}');
     expect(loadDrinkList().drinks).toHaveLength(SEED_DRINKS.length);
   });
 
@@ -941,7 +990,7 @@ Profiles separate history on a shared device. They are not authentication — no
   - `renameProfile(list, id, name): Profile[]` — pure
   - `removeProfile(list, id): Profile[]` — pure
   - `loadProfiles(): Profile[]`, `saveProfiles(list): WriteOutcome`
-  - `loadActiveProfileId(): string | null`, `saveActiveProfileId(id: string | null): void`
+  - `loadActiveProfileId(): string | null`, `saveActiveProfileId(id: string | null): WriteOutcome`
 
 Ids and timestamps are parameters rather than generated inside, so every function is deterministic and testable.
 
@@ -955,6 +1004,7 @@ import {
   renameProfile, saveActiveProfileId, saveProfiles,
 } from '@/lib/profiles/repository';
 import type { Profile } from '@/lib/profiles/types';
+import { STORAGE_KEYS } from '@/lib/storage/localStore';
 
 const base: Profile[] = [
   { id: 'p1', name: 'Nathan', createdAt: 1000 },
@@ -1000,7 +1050,7 @@ describe('persistence', () => {
   });
 
   it('returns an empty list when stored data is corrupt', () => {
-    window.localStorage.setItem('ueddl:v1:profiles', '[{"id":1}]');
+    window.localStorage.setItem(STORAGE_KEYS.profiles, '[{"id":1}]');
     expect(loadProfiles()).toEqual([]);
   });
 
@@ -1009,6 +1059,9 @@ describe('persistence', () => {
     expect(loadActiveProfileId()).toBe('p1');
     saveActiveProfileId(null);
     expect(loadActiveProfileId()).toBeNull();
+    // Asserting the read value alone cannot tell `removeValue` apart from
+    // writing the JSON string "null" — check the key is genuinely gone.
+    expect(window.localStorage.getItem(STORAGE_KEYS.activeProfile)).toBeNull();
   });
 });
 ```
@@ -1074,12 +1127,17 @@ export function loadActiveProfileId(): string | null {
   return readValue(STORAGE_KEYS.activeProfile, (raw) => (typeof raw === 'string' ? raw : null));
 }
 
-export function saveActiveProfileId(id: string | null): void {
+/**
+ * Returns the outcome rather than swallowing it, matching `saveProfiles`.
+ * Callers may ignore it — losing this pointer costs one tap, not data — but an
+ * ignored return value is visible in a way that a discarded one is not.
+ */
+export function saveActiveProfileId(id: string | null): WriteOutcome {
   if (id === null) {
     removeValue(STORAGE_KEYS.activeProfile);
-    return;
+    return 'ok';
   }
-  writeValue(STORAGE_KEYS.activeProfile, id);
+  return writeValue(STORAGE_KEYS.activeProfile, id);
 }
 ```
 
@@ -1107,6 +1165,7 @@ The heart of the drill. Every function here is pure and takes its randomness as 
 - Create: `src/lib/session/rng.ts`
 - Create: `src/lib/session/generator.ts`
 - Test: `src/lib/session/generator.test.ts`
+- Test: `src/lib/session/config.test.ts` — **added during execution.** The original test file never imported `config.ts`, leaving the three difficulty bands and the three defaults — values the plan's own Global Constraints fix literally — with zero coverage. A band tuple typo would change every round in the app and no test would notice.
 
 **Interfaces:**
 - Consumes: `Category`, `CategoryId`, `Drink`, `DrinkId` from `@/lib/drinks/types`; `DRINKS_PER_ROUND` from `@/lib/drinks/schema`
@@ -1472,15 +1531,85 @@ export function dealRound(
 }
 ```
 
-- [ ] **Step 7: Run the tests to verify they pass**
+- [ ] **Step 7: Cover the config module**
 
-Run: `npm test -- src/lib/session/generator.test.ts`
+`generator.test.ts` never imports `config.ts`, so the difficulty bands and the
+defaults ship untested. They are constants, which is exactly why a typo in one
+would be silent: every round in the app would change and every test would stay
+green.
+
+```ts
+// src/lib/session/config.test.ts
+import { describe, expect, it } from 'vitest';
+import { SEED_CATEGORIES } from '@/data/seed-drinks';
+import {
+  DEFAULT_DIFFICULTY_ID, DEFAULT_GOAL_MS, DEFAULT_ROUND_COUNT,
+  DIFFICULTIES, bandFor, defaultSessionConfig,
+} from '@/lib/session/config';
+import type { DifficultyId } from '@/lib/session/types';
+
+describe('difficulty presets', () => {
+  it('carries the three bands the spec fixes', () => {
+    expect(DIFFICULTIES.map((d) => [d.id, d.band])).toEqual([
+      ['warmup', [8, 11]],
+      ['standard', [12, 16]],
+      ['rush', [18, 24]],
+    ]);
+  });
+
+  it('never sets a band floor below the 7 units every round already deals', () => {
+    for (const difficulty of DIFFICULTIES) {
+      expect(difficulty.band[0]).toBeGreaterThanOrEqual(7);
+      expect(difficulty.band[0]).toBeLessThanOrEqual(difficulty.band[1]);
+    }
+  });
+
+  it('resolves a band by id', () => {
+    expect(bandFor('standard')).toEqual([12, 16]);
+  });
+
+  it('throws for an unknown difficulty id', () => {
+    expect(() => bandFor('impossible' as DifficultyId)).toThrow(/Unknown difficulty/);
+  });
+});
+
+describe('defaultSessionConfig', () => {
+  it('matches the documented defaults', () => {
+    expect(defaultSessionConfig()).toEqual({
+      roundCount: 5,
+      difficultyId: 'standard',
+      band: [12, 16],
+      goalMs: 240_000,
+      categoryIds: ['shot', 'well', 'cocktail', 'martini'],
+    });
+  });
+
+  it('enables every seeded category', () => {
+    expect(defaultSessionConfig().categoryIds).toEqual(SEED_CATEGORIES.map((c) => c.id));
+  });
+
+  it('returns a fresh object per call, so callers cannot share mutable state', () => {
+    expect(defaultSessionConfig()).not.toBe(defaultSessionConfig());
+  });
+
+  it('agrees with the exported default constants', () => {
+    const config = defaultSessionConfig();
+    expect(config.roundCount).toBe(DEFAULT_ROUND_COUNT);
+    expect(config.difficultyId).toBe(DEFAULT_DIFFICULTY_ID);
+    expect(config.goalMs).toBe(DEFAULT_GOAL_MS);
+  });
+});
+```
+
+- [ ] **Step 8: Run the tests to verify they pass**
+
+Run: `npm test -- src/lib/session/`
 Expected: PASS, all cases.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
-git add src/lib/session/types.ts src/lib/session/config.ts src/lib/session/rng.ts src/lib/session/generator.ts src/lib/session/generator.test.ts
+git add src/lib/session/types.ts src/lib/session/config.ts src/lib/session/rng.ts src/lib/session/generator.ts src/lib/session/generator.test.ts src/lib/session/config.test.ts
 git commit -m "feat: add round generator with two-tier freshness and banded quantities"
 ```
 
@@ -2247,7 +2376,11 @@ Expected: PASS.
 npm run test:coverage
 ```
 
-Expected: PASS with every `src/lib/**` file at or above the 80% thresholds. The lib layer is complete at this point and fully tested with no React involved.
+Expected: PASS. The thresholds in `vitest.config.mts` are **global, not per-file**
+(`perFile` is not set), so the gate is aggregate coverage — do not chase 80% on
+each individual file. A thin wrapper like `systemRng` staying uncovered until
+Task 12 is expected. The lib layer is complete at this point and fully tested
+with no React involved.
 
 - [ ] **Step 7: Commit**
 
@@ -2773,7 +2906,7 @@ npm run build
 tmux new-session -d -s ueddl "npm run start"
 ```
 
-Open `http://localhost:3000`, create a profile, continue to Setup. Two checks:
+Open `http://localhost:3100`, create a profile, continue to Setup. Two checks:
 - Leave only Martinis checked and pick Rush — the "top out at 14" warning appears and Start stays enabled.
 - Uncheck every category — the blocking message appears and Start is disabled.
 
@@ -2908,6 +3041,37 @@ describe('useSessionMachine', () => {
 
     expect(loadSession('s1')?.completedAt).toBeNull();
     expect(loadSession('s1')?.rounds).toEqual([]);
+  });
+
+  it('advances the displayed elapsed time as the clock actually runs', async () => {
+    // The interval in useNow is the only thing that makes the clock visibly
+    // move. Every other test asserts state immediately after a discrete action,
+    // which would still pass if the ticker were entirely broken.
+    const { result } = await mountWithSession(2);
+    await act(async () => { result.current.startRound(); });
+    expect(result.current.elapsedMs).toBe(0);
+
+    await act(async () => {
+      vi.setSystemTime(START + 1_500);
+      await vi.advanceTimersByTimeAsync(1_500);
+    });
+    expect(result.current.elapsedMs).toBe(1_500);
+  });
+
+  it('freezes the displayed time while paused even as the clock runs on', async () => {
+    const { result } = await mountWithSession(2);
+    await act(async () => { result.current.startRound(); });
+
+    vi.setSystemTime(START + 10_000);
+    await act(async () => { result.current.pause(); });
+    const frozen = result.current.elapsedMs;
+    expect(frozen).toBe(10_000);
+
+    await act(async () => {
+      vi.setSystemTime(START + 60_000);
+      await vi.advanceTimersByTimeAsync(50_000);
+    });
+    expect(result.current.elapsedMs).toBe(frozen);
   });
 
   it('does nothing when there is no active session', async () => {
@@ -3278,27 +3442,36 @@ export default function PlayPage() {
   const machine = useSessionMachine();
   const { hydrated, state, elapsedMs, averageMs, lastRound } = machine;
 
+  const { startRound, pause, resume, advance, end } = machine;
+  const status = state?.status;
+
+  // Depends on `status` and the action callbacks, never on `machine` or `state`
+  // themselves. `elapsedMs` changes on every ~100ms tick, so the machine object
+  // is a new reference each tick — depending on it would tear down and
+  // re-register this listener roughly ten times a second for the whole round.
+  // The callbacks are useCallback-stable, so this now re-registers only when the
+  // status actually changes: a handful of times per session.
   useEffect(() => {
-    if (state === null || state.status === 'complete') return;
+    if (status === undefined || status === 'complete') return;
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.target instanceof HTMLInputElement) return;
 
       if (event.code === 'Space') {
         event.preventDefault();
-        if (state.status === 'resting') machine.startRound();
-        else machine.advance();
+        if (status === 'resting') startRound();
+        else advance();
       } else if (event.key.toLowerCase() === 'p') {
-        if (state.status === 'running') machine.pause();
-        else if (state.status === 'paused') machine.resume();
+        if (status === 'running') pause();
+        else if (status === 'paused') resume();
       } else if (event.key === 'Escape') {
-        if (window.confirm('End this session early?')) machine.end();
+        if (window.confirm('End this session early?')) end();
       }
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [machine, state]);
+  }, [status, startRound, pause, resume, advance, end]);
 
   if (!hydrated) return <main><p>Loading…</p></main>;
 
@@ -3357,9 +3530,97 @@ export default function PlayPage() {
 }
 ```
 
-- [ ] **Step 5: Run the test to verify it passes**
+- [ ] **Step 5: Cover the pass/miss display**
 
-Run: `npm test -- src/components/play/Ticket.test.tsx`
+`data-over` and `data-verdict` are the literal signal a bartender reads. Nothing
+locks them in.
+
+```tsx
+// src/components/play/RoundClock.test.tsx
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+import { RoundClock } from '@/components/play/RoundClock';
+
+const GOAL = 240_000;
+
+describe('RoundClock', () => {
+  it('renders the elapsed time as m:ss', () => {
+    render(<RoundClock elapsedMs={125_000} goalMs={GOAL} paused={false} />);
+    expect(screen.getByText('2:05')).toBeInTheDocument();
+  });
+
+  it('does not flag over-goal at exactly the goal — the boundary is inclusive', () => {
+    const { container } = render(<RoundClock elapsedMs={GOAL} goalMs={GOAL} paused={false} />);
+    expect(container.querySelector('.clock')).toHaveAttribute('data-over', 'false');
+  });
+
+  it('flags over-goal one millisecond past it', () => {
+    const { container } = render(<RoundClock elapsedMs={GOAL + 1} goalMs={GOAL} paused={false} />);
+    expect(container.querySelector('.clock')).toHaveAttribute('data-over', 'true');
+  });
+
+  it('marks the paused state', () => {
+    const { container } = render(<RoundClock elapsedMs={1_000} goalMs={GOAL} paused />);
+    expect(container.querySelector('.clock')).toHaveAttribute('data-paused', 'true');
+  });
+
+  it('is not a live region — announcing every tick would be hostile', () => {
+    const { container } = render(<RoundClock elapsedMs={1_000} goalMs={GOAL} paused={false} />);
+    expect(container.querySelector('[aria-live]')).toBeNull();
+  });
+});
+```
+
+```tsx
+// src/components/play/RestCard.test.tsx
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+import { RestCard } from '@/components/play/RestCard';
+import type { RoundRecord } from '@/lib/session/types';
+
+const GOAL = 240_000;
+
+const round = (durationMs: number): RoundRecord => ({
+  index: 1,
+  ticket: [{ drinkId: 'a', name: 'A', categoryId: 'shot', quantity: 4 }],
+  totalUnits: 4,
+  startedAt: 0,
+  endedAt: durationMs,
+  pausedMs: 0,
+  durationMs,
+});
+
+describe('RestCard', () => {
+  it('marks a round under the goal as a pass', () => {
+    const { container } = render(<RestCard round={round(200_000)} goalMs={GOAL} averageMs={200_000} />);
+    expect(container.querySelector('.rest')).toHaveAttribute('data-verdict', 'pass');
+  });
+
+  it('passes at exactly the goal', () => {
+    const { container } = render(<RestCard round={round(GOAL)} goalMs={GOAL} averageMs={GOAL} />);
+    expect(container.querySelector('.rest')).toHaveAttribute('data-verdict', 'pass');
+  });
+
+  it('marks a round over the goal as a miss', () => {
+    const { container } = render(<RestCard round={round(GOAL + 1)} goalMs={GOAL} averageMs={GOAL + 1} />);
+    expect(container.querySelector('.rest')).toHaveAttribute('data-verdict', 'miss');
+  });
+
+  it('names the round by its human number, not its index', () => {
+    render(<RestCard round={round(200_000)} goalMs={GOAL} averageMs={200_000} />);
+    expect(screen.getByRole('heading', { name: 'Round 2 done' })).toBeInTheDocument();
+  });
+
+  it('shows a dash rather than a number when there is no average yet', () => {
+    render(<RestCard round={round(200_000)} goalMs={GOAL} averageMs={null} />);
+    expect(screen.getByText(/Average so far/)).toHaveTextContent('—');
+  });
+});
+```
+
+- [ ] **Step 6: Run the tests to verify they pass**
+
+Run: `npm test -- src/components/play/`
 Expected: PASS.
 
 - [ ] **Step 6: Commit**
@@ -3387,26 +3648,35 @@ Spec §11 requires two failures to reach the user rather than being swallowed: l
 - Consumes: `isPersistent` from `@/lib/storage/localStore`; `useHydrated` from `@/hooks/useHydrated`
 - Produces:
   - `<StorageBanner />`
-  - `SessionMachine.storageWarning: 'quota' | 'unavailable' | null`
+  - `SessionMachine.storageWarning: Exclude<WriteOutcome, 'ok'> | null` — **derived**, not hand-copied, so it cannot drift from `WriteOutcome`
+  - `<StorageWarning warning={...} />` in `src/components/play/StorageWarning.tsx`
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
 // src/components/ui/StorageBanner.test.tsx
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { StorageBanner } from '@/components/ui/StorageBanner';
-import * as localStore from '@/lib/storage/localStore';
+import { isPersistent } from '@/lib/storage/localStore';
+
+// vi.mock rather than vi.spyOn: spying on a live ES module export is not
+// reliably redefinable, and this test must fail for real reasons only.
+vi.mock('@/lib/storage/localStore', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/storage/localStore')>()),
+  isPersistent: vi.fn(() => true),
+}));
 
 describe('StorageBanner', () => {
-  it('says nothing while storage is working', async () => {
-    vi.spyOn(localStore, 'isPersistent').mockReturnValue(true);
+  beforeEach(() => { vi.mocked(isPersistent).mockReturnValue(true); });
+
+  it('says nothing while storage is working', () => {
     render(<StorageBanner />);
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
   it('warns that nothing will be saved when storage is unavailable', async () => {
-    vi.spyOn(localStore, 'isPersistent').mockReturnValue(false);
+    vi.mocked(isPersistent).mockReturnValue(false);
     render(<StorageBanner />);
     expect(await screen.findByRole('status')).toHaveTextContent(/won't be saved/i);
   });
@@ -3493,7 +3763,11 @@ export interface SessionMachine {
   readonly averageMs: number | null;
   readonly lastRound: RoundRecord | null;
   /** Non-null when the last write failed. 'quota' means history needs pruning. */
-  readonly storageWarning: 'quota' | 'unavailable' | null;
+  /**
+   * Derived from WriteOutcome rather than restated, so it cannot drift from it.
+   * Two separate stale-union bugs in this plan came from restating a type by hand.
+   */
+  readonly storageWarning: Exclude<WriteOutcome, 'ok'> | null;
   startRound(): void;
   pause(): void;
   resume(): void;
@@ -3505,7 +3779,7 @@ export interface SessionMachine {
 Add the state, replace the body of `apply`, and add `storageWarning` to the returned object:
 
 ```tsx
-  const [storageWarning, setStorageWarning] = useState<'quota' | 'unavailable' | null>(null);
+  const [storageWarning, setStorageWarning] = useState<Exclude<WriteOutcome, 'ok'> | null>(null);
 
   const apply = useCallback((action: SessionAction) => {
     const previous = stateRef.current;
@@ -3550,16 +3824,103 @@ In `src/app/play/page.tsx`, destructure it:
 and add this immediately after the opening `<main>` tag of every branch that renders a session (`complete`, `resting`, and the running branch):
 
 ```tsx
-      {storageWarning !== null && (
-        <p role="alert">
-          {storageWarning === 'quota'
-            ? "This device's storage is full — recent rounds may not have been saved."
-            : "Local storage is blocked, so this session won't be saved."}
-        </p>
-      )}
+      <StorageWarning warning={storageWarning} />
 ```
 
-- [ ] **Step 7: Run the tests to verify they pass**
+- [ ] **Step 7: Extract the warning and test its copy**
+
+The same 27-line ternary appearing in three branches is both duplication and
+untestable in place. Extract it — that makes the copy directly assertable, which
+matters because `'invalid'` carries a semantic requirement no type can enforce:
+it must never read as a storage problem.
+
+```tsx
+// src/components/play/StorageWarning.tsx
+import type { WriteOutcome } from '@/lib/storage/localStore';
+
+export function StorageWarning({ warning }: { warning: Exclude<WriteOutcome, 'ok'> | null }) {
+  if (warning === null) return null;
+
+  return (
+    <p role="alert">
+      {warning === 'quota'
+        ? "This device's storage is full — recent rounds may not have been saved."
+        : warning === 'invalid'
+          ? 'Something went wrong saving this round. Your earlier rounds are safe.'
+          : "Local storage is blocked, so this session won't be saved."}
+    </p>
+  );
+}
+```
+
+```tsx
+// src/components/play/StorageWarning.test.tsx
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+import { StorageWarning } from '@/components/play/StorageWarning';
+
+describe('StorageWarning', () => {
+  it('renders nothing when there is no warning', () => {
+    const { container } = render(<StorageWarning warning={null} />);
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it('says the device is full for a quota failure', () => {
+    render(<StorageWarning warning="quota" />);
+    expect(screen.getByRole('alert')).toHaveTextContent(/storage is full/i);
+  });
+
+  it('says the session will not be saved when storage is blocked', () => {
+    render(<StorageWarning warning="unavailable" />);
+    expect(screen.getByRole('alert')).toHaveTextContent(/won't be saved/i);
+  });
+
+  it('never blames storage for a non-serializable value', () => {
+    // 'invalid' is a data-shape bug, not a storage problem. Telling the user
+    // their storage is full or blocked would send them to fix the wrong thing.
+    render(<StorageWarning warning="invalid" />);
+    const text = screen.getByRole('alert').textContent ?? '';
+    expect(text).not.toMatch(/full|blocked|storage/i);
+    expect(text).toMatch(/earlier rounds are safe/i);
+  });
+});
+```
+
+Add two tests to `src/hooks/useSessionMachine.test.tsx` so a non-`'ok'` write
+outcome is actually reachable in a test — currently nothing drives `apply()`
+down that path:
+
+```tsx
+  it('surfaces a quota failure from the most recent write', async () => {
+    const { result } = await mountWithSession(2);
+    vi.stubGlobal('localStorage', {
+      getItem: () => null,
+      setItem: () => { const e = new Error('full'); e.name = 'QuotaExceededError'; throw e; },
+      removeItem: () => {},
+    });
+    await act(async () => { result.current.startRound(); });
+    expect(result.current.storageWarning).toBe('quota');
+    vi.unstubAllGlobals();
+  });
+
+  it('clears the warning once a write succeeds again', async () => {
+    const { result } = await mountWithSession(2);
+    vi.stubGlobal('localStorage', {
+      getItem: () => null,
+      setItem: () => { const e = new Error('full'); e.name = 'QuotaExceededError'; throw e; },
+      removeItem: () => {},
+    });
+    await act(async () => { result.current.startRound(); });
+    expect(result.current.storageWarning).toBe('quota');
+
+    vi.unstubAllGlobals();
+    vi.setSystemTime(START + 100_000);
+    await act(async () => { result.current.advance(); });
+    expect(result.current.storageWarning).toBeNull();
+  });
+```
+
+- [ ] **Step 8: Run the tests to verify they pass**
 
 Run: `npm test -- src/components/ui/StorageBanner.test.tsx src/hooks/useSessionMachine.test.tsx`
 Expected: PASS. The session-hook suite must still pass unchanged — `storageWarning` is additive.
@@ -3579,7 +3940,7 @@ git commit -m "feat: surface storage unavailability and quota failures"
 - Create: `e2e/drill.spec.ts`
 
 **Interfaces:**
-- Consumes: the running application at `http://localhost:3000`
+- Consumes: the running application at `http://localhost:3100`
 - Produces: nothing importable — this is the outermost safety net
 
 - [ ] **Step 1: Write the specs**

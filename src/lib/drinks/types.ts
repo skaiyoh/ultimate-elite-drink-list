@@ -24,3 +24,12 @@ export interface Drink {
   /** Off means it stays in the data but is hidden from ordering (86'd). */
   readonly enabled: boolean;
 }
+
+/** The persisted drink list. Categories are code-owned and deliberately absent. */
+export interface DrinkListState {
+  readonly schemaVersion: number;
+  readonly seedVersion: number;
+  readonly drinks: readonly Drink[];
+  /** Seed drinks the user deleted, so a later seed update never resurrects them. */
+  readonly removedSeedIds: readonly DrinkId[];
+}

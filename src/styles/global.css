@@ -1,0 +1,21 @@
+@import './tokens.css';
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--color-ground);
+  color: var(--color-ink-on-ground);
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: var(--text-body);
+  font-variant-numeric: tabular-nums;
+}
+
+main { max-width: 60rem; margin: 0 auto; padding: var(--space-4) var(--space-2); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
