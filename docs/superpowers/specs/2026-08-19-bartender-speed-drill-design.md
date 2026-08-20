@@ -581,6 +581,7 @@ gets its own token values tuned for contrast.
     --color-ground:  oklch(16% 0.010 60);
     --color-docket:  oklch(96% 0.012 85);
     --color-ink:     oklch(20% 0.010 60);
+    --color-ink-on-ground: oklch(92% 0.008 85);
     --color-accent:  oklch(74% 0.130 75);
     --color-pass:    oklch(72% 0.160 150);
     --color-miss:    oklch(60% 0.190 25);
@@ -590,11 +591,17 @@ gets its own token values tuned for contrast.
   --color-ground:  oklch(16% 0.010 60);
   --color-docket:  oklch(96% 0.012 85);
   --color-ink:     oklch(20% 0.010 60);
+  --color-ink-on-ground: oklch(92% 0.008 85);
   --color-accent:  oklch(74% 0.130 75);
   --color-pass:    oklch(72% 0.160 150);
   --color-miss:    oklch(60% 0.190 25);
 }
 ```
+
+`--color-ink-on-ground` must appear in **all three** blocks. Defining it only in
+`:root` leaves it stuck at the light value under a dark theme, reproducing the
+1.07:1 bug under a new name. Measured after the fix: **16.14:1 light, 15.33:1
+dark**.
 
 **Typography** — two families, no more:
 
