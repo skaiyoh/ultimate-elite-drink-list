@@ -2247,7 +2247,11 @@ Expected: PASS.
 npm run test:coverage
 ```
 
-Expected: PASS with every `src/lib/**` file at or above the 80% thresholds. The lib layer is complete at this point and fully tested with no React involved.
+Expected: PASS. The thresholds in `vitest.config.ts` are **global, not per-file**
+(`perFile` is not set), so the gate is aggregate coverage — do not chase 80% on
+each individual file. A thin wrapper like `systemRng` staying uncovered until
+Task 12 is expected. The lib layer is complete at this point and fully tested
+with no React involved.
 
 - [ ] **Step 7: Commit**
 
@@ -3394,19 +3398,27 @@ Spec §11 requires two failures to reach the user rather than being swallowed: l
 ```tsx
 // src/components/ui/StorageBanner.test.tsx
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { StorageBanner } from '@/components/ui/StorageBanner';
-import * as localStore from '@/lib/storage/localStore';
+import { isPersistent } from '@/lib/storage/localStore';
+
+// vi.mock rather than vi.spyOn: spying on a live ES module export is not
+// reliably redefinable, and this test must fail for real reasons only.
+vi.mock('@/lib/storage/localStore', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/storage/localStore')>()),
+  isPersistent: vi.fn(() => true),
+}));
 
 describe('StorageBanner', () => {
-  it('says nothing while storage is working', async () => {
-    vi.spyOn(localStore, 'isPersistent').mockReturnValue(true);
+  beforeEach(() => { vi.mocked(isPersistent).mockReturnValue(true); });
+
+  it('says nothing while storage is working', () => {
     render(<StorageBanner />);
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
   it('warns that nothing will be saved when storage is unavailable', async () => {
-    vi.spyOn(localStore, 'isPersistent').mockReturnValue(false);
+    vi.mocked(isPersistent).mockReturnValue(false);
     render(<StorageBanner />);
     expect(await screen.findByRole('status')).toHaveTextContent(/won't be saved/i);
   });
