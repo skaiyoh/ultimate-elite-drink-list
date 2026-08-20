@@ -3644,7 +3644,8 @@ Spec §11 requires two failures to reach the user rather than being swallowed: l
 - Consumes: `isPersistent` from `@/lib/storage/localStore`; `useHydrated` from `@/hooks/useHydrated`
 - Produces:
   - `<StorageBanner />`
-  - `SessionMachine.storageWarning: 'quota' | 'unavailable' | 'invalid' | null` — four members, mirroring `WriteOutcome`
+  - `SessionMachine.storageWarning: Exclude<WriteOutcome, 'ok'> | null` — **derived**, not hand-copied, so it cannot drift from `WriteOutcome`
+  - `<StorageWarning warning={...} />` in `src/components/play/StorageWarning.tsx`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -3758,7 +3759,11 @@ export interface SessionMachine {
   readonly averageMs: number | null;
   readonly lastRound: RoundRecord | null;
   /** Non-null when the last write failed. 'quota' means history needs pruning. */
-  readonly storageWarning: 'quota' | 'unavailable' | 'invalid' | null;
+  /**
+   * Derived from WriteOutcome rather than restated, so it cannot drift from it.
+   * Two separate stale-union bugs in this plan came from restating a type by hand.
+   */
+  readonly storageWarning: Exclude<WriteOutcome, 'ok'> | null;
   startRound(): void;
   pause(): void;
   resume(): void;
@@ -3770,7 +3775,7 @@ export interface SessionMachine {
 Add the state, replace the body of `apply`, and add `storageWarning` to the returned object:
 
 ```tsx
-  const [storageWarning, setStorageWarning] = useState<'quota' | 'unavailable' | 'invalid' | null>(null);
+  const [storageWarning, setStorageWarning] = useState<Exclude<WriteOutcome, 'ok'> | null>(null);
 
   const apply = useCallback((action: SessionAction) => {
     const previous = stateRef.current;
@@ -3815,18 +3820,103 @@ In `src/app/play/page.tsx`, destructure it:
 and add this immediately after the opening `<main>` tag of every branch that renders a session (`complete`, `resting`, and the running branch):
 
 ```tsx
-      {storageWarning !== null && (
-        <p role="alert">
-          {storageWarning === 'quota'
-            ? "This device's storage is full — recent rounds may not have been saved."
-            : storageWarning === 'invalid'
-              ? "Something went wrong saving this round. Your earlier rounds are safe."
-              : "Local storage is blocked, so this session won't be saved."}
-        </p>
-      )}
+      <StorageWarning warning={storageWarning} />
 ```
 
-- [ ] **Step 7: Run the tests to verify they pass**
+- [ ] **Step 7: Extract the warning and test its copy**
+
+The same 27-line ternary appearing in three branches is both duplication and
+untestable in place. Extract it — that makes the copy directly assertable, which
+matters because `'invalid'` carries a semantic requirement no type can enforce:
+it must never read as a storage problem.
+
+```tsx
+// src/components/play/StorageWarning.tsx
+import type { WriteOutcome } from '@/lib/storage/localStore';
+
+export function StorageWarning({ warning }: { warning: Exclude<WriteOutcome, 'ok'> | null }) {
+  if (warning === null) return null;
+
+  return (
+    <p role="alert">
+      {warning === 'quota'
+        ? "This device's storage is full — recent rounds may not have been saved."
+        : warning === 'invalid'
+          ? 'Something went wrong saving this round. Your earlier rounds are safe.'
+          : "Local storage is blocked, so this session won't be saved."}
+    </p>
+  );
+}
+```
+
+```tsx
+// src/components/play/StorageWarning.test.tsx
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+import { StorageWarning } from '@/components/play/StorageWarning';
+
+describe('StorageWarning', () => {
+  it('renders nothing when there is no warning', () => {
+    const { container } = render(<StorageWarning warning={null} />);
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it('says the device is full for a quota failure', () => {
+    render(<StorageWarning warning="quota" />);
+    expect(screen.getByRole('alert')).toHaveTextContent(/storage is full/i);
+  });
+
+  it('says the session will not be saved when storage is blocked', () => {
+    render(<StorageWarning warning="unavailable" />);
+    expect(screen.getByRole('alert')).toHaveTextContent(/won't be saved/i);
+  });
+
+  it('never blames storage for a non-serializable value', () => {
+    // 'invalid' is a data-shape bug, not a storage problem. Telling the user
+    // their storage is full or blocked would send them to fix the wrong thing.
+    render(<StorageWarning warning="invalid" />);
+    const text = screen.getByRole('alert').textContent ?? '';
+    expect(text).not.toMatch(/full|blocked|storage/i);
+    expect(text).toMatch(/earlier rounds are safe/i);
+  });
+});
+```
+
+Add two tests to `src/hooks/useSessionMachine.test.tsx` so a non-`'ok'` write
+outcome is actually reachable in a test — currently nothing drives `apply()`
+down that path:
+
+```tsx
+  it('surfaces a quota failure from the most recent write', async () => {
+    const { result } = await mountWithSession(2);
+    vi.stubGlobal('localStorage', {
+      getItem: () => null,
+      setItem: () => { const e = new Error('full'); e.name = 'QuotaExceededError'; throw e; },
+      removeItem: () => {},
+    });
+    await act(async () => { result.current.startRound(); });
+    expect(result.current.storageWarning).toBe('quota');
+    vi.unstubAllGlobals();
+  });
+
+  it('clears the warning once a write succeeds again', async () => {
+    const { result } = await mountWithSession(2);
+    vi.stubGlobal('localStorage', {
+      getItem: () => null,
+      setItem: () => { const e = new Error('full'); e.name = 'QuotaExceededError'; throw e; },
+      removeItem: () => {},
+    });
+    await act(async () => { result.current.startRound(); });
+    expect(result.current.storageWarning).toBe('quota');
+
+    vi.unstubAllGlobals();
+    vi.setSystemTime(START + 100_000);
+    await act(async () => { result.current.advance(); });
+    expect(result.current.storageWarning).toBeNull();
+  });
+```
+
+- [ ] **Step 8: Run the tests to verify they pass**
 
 Run: `npm test -- src/components/ui/StorageBanner.test.tsx src/hooks/useSessionMachine.test.tsx`
 Expected: PASS. The session-hook suite must still pass unchanged — `storageWarning` is additive.
