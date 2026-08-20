@@ -414,8 +414,22 @@ stop measuring anything.
 
 ### Timing math
 
-All recorded values derive from `Date.now()` timestamps. **No accumulating
-interval counter is ever the source of truth** — a tick counter drifts and is
+All recorded values derive from `Date.now()` timestamps.
+
+**The real trade, stated honestly.** Wall-clock stamps are correct across
+reloads and backgrounding — which crash recovery depends on, since it spans
+reloads by design — and they are **not monotonic** under a clock adjustment. An
+NTP step or manual change mid-round can move time backwards. That is accepted.
+`performance.now()` is not the fix it appears to be: it is monotonic only within
+one document, and its origin resets on every reload, so recovery would need both
+clocks persisted and a rule for which measured what.
+
+What is *not* accepted is doing it silently. `Math.max(0, …)` turns a backwards
+jump into a plausible short round, the one outcome that corrupts data without
+telling anyone. A round whose end precedes its start is marked suspect and
+excluded from averages rather than clamped into looking fine.
+
+**No accumulating interval counter is ever the source of truth** — a tick counter drifts and is
 throttled or frozen when the tab is backgrounded, which would silently corrupt
 the one number this app exists to measure. A 100ms interval exists solely to
 trigger re-renders of the displayed clock.
@@ -529,6 +543,15 @@ Not a default template. The metaphor is a **bar ticket rail**: the round's
 drinks sit on a paper docket against a dark back-bar ground, and the clock is
 the hero element on the screen.
 
+> **The bug this table originally shipped.** `--color-ink` was listed identically
+> in both themes because it was conceived as ink *printed on the paper docket* —
+> and the spec never defined a token for text on `--color-ground`. The
+> implementation faithfully used `--color-ink` for `body`, putting
+> `oklch(20%)` text on an `oklch(16%)` background: **1.07:1 contrast**, against a
+> WCAG AA floor of 4.5:1. Every heading and the hero clock were invisible in dark
+> mode until a round went over goal and the clock flipped to `--color-miss`.
+> `--color-ink-on-ground` exists to keep those two jobs separate.
+
 **Both themes are first-class and the metaphor holds in each** — dark reads as
 the back bar at night, light as prep in daylight. The app follows the system
 preference by default and exposes an explicit toggle that overrides it; the
@@ -539,9 +562,14 @@ gets its own token values tuned for contrast.
 
 ```css
 :root {
+  color-scheme: light dark;
+
   --color-ground:  oklch(96% 0.008 85);
   --color-docket:  oklch(99% 0.004 85);
+  /* Text ON the docket. Dark in BOTH themes — the paper stays light. */
   --color-ink:     oklch(20% 0.010 60);
+  /* Text on the page ground. This is the one that must flip with the theme. */
+  --color-ink-on-ground: oklch(20% 0.010 60);
   --color-accent:  oklch(62% 0.130 75);   /* brass */
   --color-pass:    oklch(52% 0.150 150);
   --color-miss:    oklch(52% 0.190 25);
@@ -651,10 +679,18 @@ label naming what it measures; the round verdict announces once on entry to
 
 ## 13. Performance budget
 
-**< 300KB JS gzipped**, **< 30KB CSS**, LCP < 2.5s, CLS < 0.1, INP < 200ms.
+**< 175KB JS gzipped**, **< 30KB CSS**, LCP < 2.5s, CLS < 0.1, INP < 200ms.
 
-This is the app-page tier, not the landing-page tier, and the correction is
-evidence-driven. Measured at the Task 1 scaffold — a page containing nothing but
+**Corrected twice, and the second correction reverses the first.** The 300KB
+app-page tier was set on evidence measured at an `<h1>`-only scaffold, where the
+framework runtime alone consumed 87% of the original 150KB. That projection was
+wrong: app code lands in per-route chunks, not the shared bundle. The finished
+application measures **126.6KB gzipped** shared first-load — under the original
+figure. A 300KB ceiling nothing will approach is not a budget, so it is set to
+175KB, close enough that a real regression trips it.
+
+The original reasoning, kept because the measurement was real even though the
+projection from it was not: Measured at the Task 1 scaffold — a page containing nothing but
 an `<h1>` — the Next.js App Router + React framework runtime already costs
 **~130KB gzipped** across the chunks every route loads (excluding the polyfill
 chunk, which modern browsers skip). The original 150KB figure left roughly 20KB
