@@ -778,7 +778,7 @@ Seed merge is the subtle part: it must add newly-shipped drinks without overwrit
 - Test: `src/lib/drinks/repository.test.ts`
 
 **Interfaces:**
-- Consumes: `parseDrinkListState`, `DRINKS_SCHEMA_VERSION`, `DRINKS_PER_ROUND` from `@/lib/drinks/schema`; `readValue`, `writeValue`, `STORAGE_KEYS` from `@/lib/storage/localStore`; `SEED_DRINKS`, `SEED_CATEGORIES`, `SEED_VERSION` from `@/data/seed-drinks`
+- Consumes: `parseDrinkListState`, `DRINKS_SCHEMA_VERSION` from `@/lib/drinks/schema`; `readValue`, `writeValue`, `STORAGE_KEYS` from `@/lib/storage/localStore`; `SEED_DRINKS`, `SEED_CATEGORIES`, `SEED_VERSION` from `@/data/seed-drinks`
 - Produces:
   - `initialDrinkList(): DrinkListState`
   - `mergeSeed(state: DrinkListState): DrinkListState` — pure
