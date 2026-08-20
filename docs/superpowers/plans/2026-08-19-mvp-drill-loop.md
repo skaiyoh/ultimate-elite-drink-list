@@ -3039,6 +3039,37 @@ describe('useSessionMachine', () => {
     expect(loadSession('s1')?.rounds).toEqual([]);
   });
 
+  it('advances the displayed elapsed time as the clock actually runs', async () => {
+    // The interval in useNow is the only thing that makes the clock visibly
+    // move. Every other test asserts state immediately after a discrete action,
+    // which would still pass if the ticker were entirely broken.
+    const { result } = await mountWithSession(2);
+    await act(async () => { result.current.startRound(); });
+    expect(result.current.elapsedMs).toBe(0);
+
+    await act(async () => {
+      vi.setSystemTime(START + 1_500);
+      await vi.advanceTimersByTimeAsync(1_500);
+    });
+    expect(result.current.elapsedMs).toBe(1_500);
+  });
+
+  it('freezes the displayed time while paused even as the clock runs on', async () => {
+    const { result } = await mountWithSession(2);
+    await act(async () => { result.current.startRound(); });
+
+    vi.setSystemTime(START + 10_000);
+    await act(async () => { result.current.pause(); });
+    const frozen = result.current.elapsedMs;
+    expect(frozen).toBe(10_000);
+
+    await act(async () => {
+      vi.setSystemTime(START + 60_000);
+      await vi.advanceTimersByTimeAsync(50_000);
+    });
+    expect(result.current.elapsedMs).toBe(frozen);
+  });
+
   it('does nothing when there is no active session', async () => {
     const { result } = renderHook(() => useSessionMachine());
     await act(async () => {});
@@ -3407,27 +3438,36 @@ export default function PlayPage() {
   const machine = useSessionMachine();
   const { hydrated, state, elapsedMs, averageMs, lastRound } = machine;
 
+  const { startRound, pause, resume, advance, end } = machine;
+  const status = state?.status;
+
+  // Depends on `status` and the action callbacks, never on `machine` or `state`
+  // themselves. `elapsedMs` changes on every ~100ms tick, so the machine object
+  // is a new reference each tick — depending on it would tear down and
+  // re-register this listener roughly ten times a second for the whole round.
+  // The callbacks are useCallback-stable, so this now re-registers only when the
+  // status actually changes: a handful of times per session.
   useEffect(() => {
-    if (state === null || state.status === 'complete') return;
+    if (status === undefined || status === 'complete') return;
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.target instanceof HTMLInputElement) return;
 
       if (event.code === 'Space') {
         event.preventDefault();
-        if (state.status === 'resting') machine.startRound();
-        else machine.advance();
+        if (status === 'resting') startRound();
+        else advance();
       } else if (event.key.toLowerCase() === 'p') {
-        if (state.status === 'running') machine.pause();
-        else if (state.status === 'paused') machine.resume();
+        if (status === 'running') pause();
+        else if (status === 'paused') resume();
       } else if (event.key === 'Escape') {
-        if (window.confirm('End this session early?')) machine.end();
+        if (window.confirm('End this session early?')) end();
       }
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [machine, state]);
+  }, [status, startRound, pause, resume, advance, end]);
 
   if (!hydrated) return <main><p>Loading…</p></main>;
 
@@ -3486,9 +3526,97 @@ export default function PlayPage() {
 }
 ```
 
-- [ ] **Step 5: Run the test to verify it passes**
+- [ ] **Step 5: Cover the pass/miss display**
 
-Run: `npm test -- src/components/play/Ticket.test.tsx`
+`data-over` and `data-verdict` are the literal signal a bartender reads. Nothing
+locks them in.
+
+```tsx
+// src/components/play/RoundClock.test.tsx
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+import { RoundClock } from '@/components/play/RoundClock';
+
+const GOAL = 240_000;
+
+describe('RoundClock', () => {
+  it('renders the elapsed time as m:ss', () => {
+    render(<RoundClock elapsedMs={125_000} goalMs={GOAL} paused={false} />);
+    expect(screen.getByText('2:05')).toBeInTheDocument();
+  });
+
+  it('does not flag over-goal at exactly the goal — the boundary is inclusive', () => {
+    const { container } = render(<RoundClock elapsedMs={GOAL} goalMs={GOAL} paused={false} />);
+    expect(container.querySelector('.clock')).toHaveAttribute('data-over', 'false');
+  });
+
+  it('flags over-goal one millisecond past it', () => {
+    const { container } = render(<RoundClock elapsedMs={GOAL + 1} goalMs={GOAL} paused={false} />);
+    expect(container.querySelector('.clock')).toHaveAttribute('data-over', 'true');
+  });
+
+  it('marks the paused state', () => {
+    const { container } = render(<RoundClock elapsedMs={1_000} goalMs={GOAL} paused />);
+    expect(container.querySelector('.clock')).toHaveAttribute('data-paused', 'true');
+  });
+
+  it('is not a live region — announcing every tick would be hostile', () => {
+    const { container } = render(<RoundClock elapsedMs={1_000} goalMs={GOAL} paused={false} />);
+    expect(container.querySelector('[aria-live]')).toBeNull();
+  });
+});
+```
+
+```tsx
+// src/components/play/RestCard.test.tsx
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+import { RestCard } from '@/components/play/RestCard';
+import type { RoundRecord } from '@/lib/session/types';
+
+const GOAL = 240_000;
+
+const round = (durationMs: number): RoundRecord => ({
+  index: 1,
+  ticket: [{ drinkId: 'a', name: 'A', categoryId: 'shot', quantity: 4 }],
+  totalUnits: 4,
+  startedAt: 0,
+  endedAt: durationMs,
+  pausedMs: 0,
+  durationMs,
+});
+
+describe('RestCard', () => {
+  it('marks a round under the goal as a pass', () => {
+    const { container } = render(<RestCard round={round(200_000)} goalMs={GOAL} averageMs={200_000} />);
+    expect(container.querySelector('.rest')).toHaveAttribute('data-verdict', 'pass');
+  });
+
+  it('passes at exactly the goal', () => {
+    const { container } = render(<RestCard round={round(GOAL)} goalMs={GOAL} averageMs={GOAL} />);
+    expect(container.querySelector('.rest')).toHaveAttribute('data-verdict', 'pass');
+  });
+
+  it('marks a round over the goal as a miss', () => {
+    const { container } = render(<RestCard round={round(GOAL + 1)} goalMs={GOAL} averageMs={GOAL + 1} />);
+    expect(container.querySelector('.rest')).toHaveAttribute('data-verdict', 'miss');
+  });
+
+  it('names the round by its human number, not its index', () => {
+    render(<RestCard round={round(200_000)} goalMs={GOAL} averageMs={200_000} />);
+    expect(screen.getByRole('heading', { name: 'Round 2 done' })).toBeInTheDocument();
+  });
+
+  it('shows a dash rather than a number when there is no average yet', () => {
+    render(<RestCard round={round(200_000)} goalMs={GOAL} averageMs={null} />);
+    expect(screen.getByText(/Average so far/)).toHaveTextContent('—');
+  });
+});
+```
+
+- [ ] **Step 6: Run the tests to verify they pass**
+
+Run: `npm test -- src/components/play/`
 Expected: PASS.
 
 - [ ] **Step 6: Commit**
