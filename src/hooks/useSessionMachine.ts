@@ -15,6 +15,7 @@ import {
   clearActiveSession, commitSession, loadActiveSession, saveActiveSession,
 } from '@/lib/session/repository';
 import type { RoundRecord } from '@/lib/session/types';
+import type { WriteOutcome } from '@/lib/storage/localStore';
 
 export interface SessionMachine {
   readonly hydrated: boolean;
@@ -23,7 +24,11 @@ export interface SessionMachine {
   readonly averageMs: number | null;
   readonly lastRound: RoundRecord | null;
   /** Non-null when the last write failed. 'quota' means history needs pruning. */
-  readonly storageWarning: 'quota' | 'unavailable' | 'invalid' | null;
+  /**
+   * Derived from WriteOutcome rather than restated, so it cannot drift from it.
+   * Two separate stale-union bugs in this plan came from restating a type by hand.
+   */
+  readonly storageWarning: Exclude<WriteOutcome, 'ok'> | null;
   startRound(): void;
   pause(): void;
   resume(): void;
@@ -34,7 +39,7 @@ export interface SessionMachine {
 export function useSessionMachine(): SessionMachine {
   const [hydrated, setHydrated] = useState(false);
   const [state, setState] = useState<SessionState | null>(null);
-  const [storageWarning, setStorageWarning] = useState<'quota' | 'unavailable' | 'invalid' | null>(null);
+  const [storageWarning, setStorageWarning] = useState<Exclude<WriteOutcome, 'ok'> | null>(null);
   const stateRef = useRef<SessionState | null>(null);
   const drinksRef = useRef<DrinkListState | null>(null);
 

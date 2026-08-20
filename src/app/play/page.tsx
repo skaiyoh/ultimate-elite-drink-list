@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useEffect } from 'react';
 import { RestCard } from '@/components/play/RestCard';
 import { RoundClock } from '@/components/play/RoundClock';
+import { StorageWarning } from '@/components/play/StorageWarning';
 import { Ticket } from '@/components/play/Ticket';
 import { useSessionMachine } from '@/hooks/useSessionMachine';
 import { formatDuration } from '@/lib/format/duration';
@@ -64,15 +65,7 @@ export default function PlayPage() {
   if (status === 'complete') {
     return (
       <main>
-        {storageWarning !== null && (
-          <p role="alert">
-            {storageWarning === 'quota'
-              ? "This device's storage is full — recent rounds may not have been saved."
-              : storageWarning === 'invalid'
-                ? "Something went wrong saving this round. Your earlier rounds are safe."
-                : "Local storage is blocked, so this session won't be saved."}
-          </p>
-        )}
+        <StorageWarning warning={storageWarning} />
         <h1>Session complete</h1>
         <p>Average {averageMs === null ? '—' : formatDuration(averageMs)} against a {formatDuration(config.goalMs)} goal</p>
         <ol aria-label="Round times">
@@ -88,15 +81,7 @@ export default function PlayPage() {
   if (status === 'resting') {
     return (
       <main>
-        {storageWarning !== null && (
-          <p role="alert">
-            {storageWarning === 'quota'
-              ? "This device's storage is full — recent rounds may not have been saved."
-              : storageWarning === 'invalid'
-                ? "Something went wrong saving this round. Your earlier rounds are safe."
-                : "Local storage is blocked, so this session won't be saved."}
-          </p>
-        )}
+        <StorageWarning warning={storageWarning} />
         <h1>Round {rounds.length + 1} of {config.roundCount}</h1>
         {lastRound && <RestCard round={lastRound} goalMs={config.goalMs} averageMs={averageMs} />}
         <button onClick={machine.startRound}>Start round {rounds.length + 1}</button>
@@ -110,15 +95,7 @@ export default function PlayPage() {
 
   return (
     <main>
-      {storageWarning !== null && (
-        <p role="alert">
-          {storageWarning === 'quota'
-            ? "This device's storage is full — recent rounds may not have been saved."
-            : storageWarning === 'invalid'
-              ? "Something went wrong saving this round. Your earlier rounds are safe."
-              : "Local storage is blocked, so this session won't be saved."}
-        </p>
-      )}
+      <StorageWarning warning={storageWarning} />
       <h1>Round {current.index + 1} of {config.roundCount}</h1>
       <RoundClock elapsedMs={elapsedMs} goalMs={config.goalMs} paused={status === 'paused'} />
       <Ticket lines={current.ticket} />

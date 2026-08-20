@@ -147,4 +147,32 @@ describe('useSessionMachine', () => {
     await act(async () => { result.current.startRound(); });
     expect(result.current.state).toBeNull();
   });
+
+  it('surfaces a quota failure from the most recent write', async () => {
+    const { result } = await mountWithSession(2);
+    vi.stubGlobal('localStorage', {
+      getItem: () => null,
+      setItem: () => { const e = new Error('full'); e.name = 'QuotaExceededError'; throw e; },
+      removeItem: () => {},
+    });
+    await act(async () => { result.current.startRound(); });
+    expect(result.current.storageWarning).toBe('quota');
+    vi.unstubAllGlobals();
+  });
+
+  it('clears the warning once a write succeeds again', async () => {
+    const { result } = await mountWithSession(2);
+    vi.stubGlobal('localStorage', {
+      getItem: () => null,
+      setItem: () => { const e = new Error('full'); e.name = 'QuotaExceededError'; throw e; },
+      removeItem: () => {},
+    });
+    await act(async () => { result.current.startRound(); });
+    expect(result.current.storageWarning).toBe('quota');
+
+    vi.unstubAllGlobals();
+    vi.setSystemTime(START + 100_000);
+    await act(async () => { result.current.advance(); });
+    expect(result.current.storageWarning).toBeNull();
+  });
 });
