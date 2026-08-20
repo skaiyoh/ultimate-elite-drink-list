@@ -22,6 +22,8 @@ export interface SessionMachine {
   readonly elapsedMs: number;
   readonly averageMs: number | null;
   readonly lastRound: RoundRecord | null;
+  /** Non-null when the last write failed. 'quota' means history needs pruning. */
+  readonly storageWarning: 'quota' | 'unavailable' | 'invalid' | null;
   startRound(): void;
   pause(): void;
   resume(): void;
@@ -32,6 +34,7 @@ export interface SessionMachine {
 export function useSessionMachine(): SessionMachine {
   const [hydrated, setHydrated] = useState(false);
   const [state, setState] = useState<SessionState | null>(null);
+  const [storageWarning, setStorageWarning] = useState<'quota' | 'unavailable' | 'invalid' | null>(null);
   const stateRef = useRef<SessionState | null>(null);
   const drinksRef = useRef<DrinkListState | null>(null);
 
@@ -57,12 +60,14 @@ export function useSessionMachine(): SessionMachine {
     if (next === previous) return;
 
     stateRef.current = next;
+    let outcome;
     if (next.status === 'complete') {
-      commitSession(toRecord(next));
+      outcome = commitSession(toRecord(next));
       clearActiveSession();
     } else {
-      saveActiveSession(next);
+      outcome = saveActiveSession(next);
     }
+    setStorageWarning(outcome === 'ok' ? null : outcome);
     setState(next);
   }, []);
 
@@ -96,6 +101,7 @@ export function useSessionMachine(): SessionMachine {
     elapsedMs: state?.current ? computeElapsed(state.current, now) : 0,
     averageMs: state ? averageMs(state.rounds) : null,
     lastRound: state && state.rounds.length > 0 ? state.rounds[state.rounds.length - 1] : null,
+    storageWarning,
     startRound, pause, resume, advance, end,
   };
 }

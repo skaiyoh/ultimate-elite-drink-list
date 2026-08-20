@@ -1,0 +1,8 @@
+/* src/components/ui/ui.css */
+.banner {
+  margin: 0;
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-miss);
+  color: var(--color-docket);
+  text-align: center;
+}

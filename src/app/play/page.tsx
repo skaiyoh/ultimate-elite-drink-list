@@ -9,7 +9,7 @@ import { formatDuration } from '@/lib/format/duration';
 
 export default function PlayPage() {
   const machine = useSessionMachine();
-  const { hydrated, state, elapsedMs, averageMs, lastRound } = machine;
+  const { hydrated, state, elapsedMs, averageMs, lastRound, storageWarning } = machine;
 
   const { startRound, pause, resume, advance, end } = machine;
   // Named `currentStatus`, not `status`: the render branches below already
@@ -64,6 +64,15 @@ export default function PlayPage() {
   if (status === 'complete') {
     return (
       <main>
+        {storageWarning !== null && (
+          <p role="alert">
+            {storageWarning === 'quota'
+              ? "This device's storage is full — recent rounds may not have been saved."
+              : storageWarning === 'invalid'
+                ? "Something went wrong saving this round. Your earlier rounds are safe."
+                : "Local storage is blocked, so this session won't be saved."}
+          </p>
+        )}
         <h1>Session complete</h1>
         <p>Average {averageMs === null ? '—' : formatDuration(averageMs)} against a {formatDuration(config.goalMs)} goal</p>
         <ol aria-label="Round times">
@@ -79,6 +88,15 @@ export default function PlayPage() {
   if (status === 'resting') {
     return (
       <main>
+        {storageWarning !== null && (
+          <p role="alert">
+            {storageWarning === 'quota'
+              ? "This device's storage is full — recent rounds may not have been saved."
+              : storageWarning === 'invalid'
+                ? "Something went wrong saving this round. Your earlier rounds are safe."
+                : "Local storage is blocked, so this session won't be saved."}
+          </p>
+        )}
         <h1>Round {rounds.length + 1} of {config.roundCount}</h1>
         {lastRound && <RestCard round={lastRound} goalMs={config.goalMs} averageMs={averageMs} />}
         <button onClick={machine.startRound}>Start round {rounds.length + 1}</button>
@@ -92,6 +110,15 @@ export default function PlayPage() {
 
   return (
     <main>
+      {storageWarning !== null && (
+        <p role="alert">
+          {storageWarning === 'quota'
+            ? "This device's storage is full — recent rounds may not have been saved."
+            : storageWarning === 'invalid'
+              ? "Something went wrong saving this round. Your earlier rounds are safe."
+              : "Local storage is blocked, so this session won't be saved."}
+        </p>
+      )}
       <h1>Round {current.index + 1} of {config.roundCount}</h1>
       <RoundClock elapsedMs={elapsedMs} goalMs={config.goalMs} paused={status === 'paused'} />
       <Ticket lines={current.ticket} />
