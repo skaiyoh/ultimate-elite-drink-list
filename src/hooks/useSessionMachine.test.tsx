@@ -101,6 +101,45 @@ describe('useSessionMachine', () => {
     expect(loadSession('s1')?.rounds).toEqual([]);
   });
 
+  it('advances the displayed elapsed time as the clock actually runs', async () => {
+    // The interval in useNow is the only thing that makes the clock visibly
+    // move. Every other test asserts state immediately after a discrete action,
+    // which would still pass if the ticker were entirely broken.
+    //
+    // No `vi.setSystemTime` call here, deliberately: vitest's fake-timer clock
+    // treats `setSystemTime` as an instantaneous jump that fires no timers, and
+    // a *subsequent* `advanceTimersByTimeAsync(ms)` still advances by `ms` from
+    // that already-jumped position — so pairing the two moves the mocked clock
+    // by their sum, not by `ms`. Confirmed with an isolated repro against raw
+    // `setInterval` outside this component. `advanceTimersByTimeAsync` alone
+    // already advances `Date.now()` in lockstep with the timer queue, which is
+    // all this assertion needs.
+    const { result } = await mountWithSession(2);
+    await act(async () => { result.current.startRound(); });
+    expect(result.current.elapsedMs).toBe(0);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1_500);
+    });
+    expect(result.current.elapsedMs).toBe(1_500);
+  });
+
+  it('freezes the displayed time while paused even as the clock runs on', async () => {
+    const { result } = await mountWithSession(2);
+    await act(async () => { result.current.startRound(); });
+
+    vi.setSystemTime(START + 10_000);
+    await act(async () => { result.current.pause(); });
+    const frozen = result.current.elapsedMs;
+    expect(frozen).toBe(10_000);
+
+    await act(async () => {
+      vi.setSystemTime(START + 60_000);
+      await vi.advanceTimersByTimeAsync(50_000);
+    });
+    expect(result.current.elapsedMs).toBe(frozen);
+  });
+
   it('does nothing when there is no active session', async () => {
     const { result } = renderHook(() => useSessionMachine());
     await act(async () => {});

@@ -11,27 +11,42 @@ export default function PlayPage() {
   const machine = useSessionMachine();
   const { hydrated, state, elapsedMs, averageMs, lastRound } = machine;
 
+  const { startRound, pause, resume, advance, end } = machine;
+  // Named `currentStatus`, not `status`: the render branches below already
+  // declare their own `status` via `const { config, rounds, status } = state`
+  // in this same function scope. Reusing `status` here would be a duplicate
+  // `const` declaration in that scope (a compile error), not a shadow — the
+  // `if (state === null) return …` between them doesn't open a new block.
+  const currentStatus = state?.status;
+
+  // Depends on `currentStatus` and the action callbacks, never on `machine` or
+  // `state` themselves. `elapsedMs` changes on every ~100ms tick, so the
+  // machine object is a new reference each tick — depending on it would tear
+  // down and re-register this listener roughly ten times a second for the
+  // whole round. The callbacks are useCallback-stable, so this now
+  // re-registers only when the status actually changes: a handful of times
+  // per session.
   useEffect(() => {
-    if (state === null || state.status === 'complete') return;
+    if (currentStatus === undefined || currentStatus === 'complete') return;
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.target instanceof HTMLInputElement) return;
 
       if (event.code === 'Space') {
         event.preventDefault();
-        if (state.status === 'resting') machine.startRound();
-        else machine.advance();
+        if (currentStatus === 'resting') startRound();
+        else advance();
       } else if (event.key.toLowerCase() === 'p') {
-        if (state.status === 'running') machine.pause();
-        else if (state.status === 'paused') machine.resume();
+        if (currentStatus === 'running') pause();
+        else if (currentStatus === 'paused') resume();
       } else if (event.key === 'Escape') {
-        if (window.confirm('End this session early?')) machine.end();
+        if (window.confirm('End this session early?')) end();
       }
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [machine, state]);
+  }, [currentStatus, startRound, pause, resume, advance, end]);
 
   if (!hydrated) return <main><p>Loading…</p></main>;
 
