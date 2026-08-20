@@ -4,6 +4,7 @@ import {
   categoryMap, initialDrinkList, loadDrinkList, mergeSeed, poolFor, saveDrinkList,
 } from '@/lib/drinks/repository';
 import type { DrinkListState } from '@/lib/drinks/types';
+import { STORAGE_KEYS } from '@/lib/storage/localStore';
 
 describe('initialDrinkList', () => {
   it('starts from the full seed with nothing removed', () => {
@@ -54,7 +55,7 @@ describe('loadDrinkList', () => {
   });
 
   it('falls back to the seed when stored data is corrupt', () => {
-    window.localStorage.setItem('ueddl:v1:drinks', '{"schemaVersion":"wrong"}');
+    window.localStorage.setItem(STORAGE_KEYS.drinks, '{"schemaVersion":"wrong"}');
     expect(loadDrinkList().drinks).toHaveLength(SEED_DRINKS.length);
   });
 

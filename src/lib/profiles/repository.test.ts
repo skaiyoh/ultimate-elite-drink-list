@@ -4,6 +4,7 @@ import {
   renameProfile, saveActiveProfileId, saveProfiles,
 } from '@/lib/profiles/repository';
 import type { Profile } from '@/lib/profiles/types';
+import { STORAGE_KEYS } from '@/lib/storage/localStore';
 
 const base: Profile[] = [
   { id: 'p1', name: 'Nathan', createdAt: 1000 },
@@ -49,7 +50,7 @@ describe('persistence', () => {
   });
 
   it('returns an empty list when stored data is corrupt', () => {
-    window.localStorage.setItem('ueddl:v1:profiles', '[{"id":1}]');
+    window.localStorage.setItem(STORAGE_KEYS.profiles, '[{"id":1}]');
     expect(loadProfiles()).toEqual([]);
   });
 
@@ -58,5 +59,8 @@ describe('persistence', () => {
     expect(loadActiveProfileId()).toBe('p1');
     saveActiveProfileId(null);
     expect(loadActiveProfileId()).toBeNull();
+    // Asserting the read value alone cannot tell `removeValue` apart from
+    // writing the JSON string "null" — check the key is genuinely gone.
+    expect(window.localStorage.getItem(STORAGE_KEYS.activeProfile)).toBeNull();
   });
 });

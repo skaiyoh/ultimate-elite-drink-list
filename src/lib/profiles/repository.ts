@@ -39,10 +39,15 @@ export function loadActiveProfileId(): string | null {
   return readValue(STORAGE_KEYS.activeProfile, (raw) => (typeof raw === 'string' ? raw : null));
 }
 
-export function saveActiveProfileId(id: string | null): void {
+/**
+ * Returns the outcome rather than swallowing it, matching `saveProfiles`.
+ * Callers may ignore it — losing this pointer costs one tap, not data — but an
+ * ignored return value is visible in a way that a discarded one is not.
+ */
+export function saveActiveProfileId(id: string | null): WriteOutcome {
   if (id === null) {
     removeValue(STORAGE_KEYS.activeProfile);
-    return;
+    return 'ok';
   }
-  writeValue(STORAGE_KEYS.activeProfile, id);
+  return writeValue(STORAGE_KEYS.activeProfile, id);
 }
