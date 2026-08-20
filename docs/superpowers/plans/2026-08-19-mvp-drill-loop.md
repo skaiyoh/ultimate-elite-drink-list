@@ -25,7 +25,7 @@ Every task's requirements implicitly include this section. Values are copied ver
 - **A round passes when `durationMs <= goalMs`** (inclusive at the boundary).
 - **No backend.** No API routes, no database, no network calls at runtime.
 - **Storage keys are namespaced `ueddl:v1:`.**
-- **Budget:** < 150KB JS gzipped. No charting library, no animation library, no icon package.
+- **Budget:** < 300KB JS gzipped, < 30KB CSS. No charting library, no animation library, no icon package. (Corrected after Task 1 measured the Next.js + React framework runtime at ~130KB gzipped on a page containing only an `<h1>`; the original 150KB left ~20KB for the whole app, and Zod alone is ~13KB of it.)
 - **Every screen that reads storage must render a hydration-safe placeholder first.** Reading `localStorage` during render breaks SSR.
 
 ---
@@ -77,7 +77,7 @@ Files that change together live together: each `lib/` domain folder owns its typ
 Nothing exists yet but `src/data/seed-drinks.ts` and `src/lib/drinks/types.ts`, which already import via the `@/*` alias. This task makes them compile and gives every later task a test command.
 
 **Files:**
-- Create: `package.json`, `tsconfig.json`, `next.config.ts`, `eslint.config.mjs`, `vitest.config.ts`, `vitest.setup.ts`, `playwright.config.ts`
+- Create: `package.json`, `tsconfig.json`, `next.config.ts`, `eslint.config.mjs`, `vitest.config.mts`, `vitest.setup.ts`, `playwright.config.ts`
 - Create: `src/app/layout.tsx`, `src/app/page.tsx`, `src/styles/tokens.css`, `src/styles/global.css`
 
 **Interfaces:**
@@ -176,10 +176,12 @@ export default [
 
 If `@eslint/eslintrc` is not already present, run `npm install -D @eslint/eslintrc`.
 
-- [ ] **Step 5: Create `vitest.config.ts` and `vitest.setup.ts`**
+- [ ] **Step 5: Create `vitest.config.mts` and `vitest.setup.ts`**
 
 ```ts
-// vitest.config.ts
+// vitest.config.mts
+// .mts, not .ts: unambiguously ESM regardless of package.json's "type" field,
+// which stops Vite's config loader printing a CJS/ESM warning on every test run.
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
@@ -357,7 +359,7 @@ export default function HomePage() {
 npm run typecheck && npm run build && npm test
 ```
 
-Expected: typecheck passes (proving `@/lib/drinks/types` resolves from `src/data/seed-drinks.ts`), build succeeds, and vitest reports "No test files found" — which is not a failure at this stage. If vitest exits non-zero on no tests, add `passWithNoTests: true` under `test:` in `vitest.config.ts`.
+Expected: typecheck passes (proving `@/lib/drinks/types` resolves from `src/data/seed-drinks.ts`), build succeeds, and vitest reports "No test files found" — which is not a failure at this stage. If vitest exits non-zero on no tests, add `passWithNoTests: true` under `test:` in `vitest.config.mts`.
 
 - [ ] **Step 10: Commit**
 
@@ -2247,7 +2249,7 @@ Expected: PASS.
 npm run test:coverage
 ```
 
-Expected: PASS. The thresholds in `vitest.config.ts` are **global, not per-file**
+Expected: PASS. The thresholds in `vitest.config.mts` are **global, not per-file**
 (`perFile` is not set), so the gate is aggregate coverage — do not chase 80% on
 each individual file. A thin wrapper like `systemRng` staying uncovered until
 Task 12 is expected. The lib layer is complete at this point and fully tested
