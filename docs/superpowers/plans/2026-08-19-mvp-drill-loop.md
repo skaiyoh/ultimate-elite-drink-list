@@ -378,6 +378,7 @@ The seed list is data a human edits by hand. This task turns the manual checks a
 - Modify: `src/lib/drinks/types.ts` (append `DrinkListState`)
 - Create: `src/lib/drinks/schema.ts`
 - Test: `src/lib/drinks/schema.test.ts`
+- Modify: `vitest.config.mts`, `package.json`, and add `.nvmrc` — **added during execution.** Node 25 ships a native `localStorage` global with no `Storage` methods, and Vitest 4's jsdom environment declines to forward jsdom's real `Storage` onto `window` when the name already exists on the Node global. Without opting out, `window.localStorage` is broken for every test in the project. Task 1 could not have caught this: no test files existed yet.
 
 **Interfaces:**
 - Consumes: `Category`, `Drink`, `CategoryId`, `DrinkId` from `@/lib/drinks/types`; `SEED_CATEGORIES`, `SEED_DRINKS`, `SEED_VERSION` from `@/data/seed-drinks`
