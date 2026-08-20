@@ -36,3 +36,6 @@ yarn-debug.log*
 yarn-error.log*
 .idea/
 .vscode/
+
+# superpowers SDD workspace (ledger, briefs, review packages)
+.superpowers/
