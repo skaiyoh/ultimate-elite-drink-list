@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useSessionMachine } from '@/hooks/useSessionMachine';
 import { defaultSessionConfig } from '@/lib/session/config';
 import { createSession } from '@/lib/session/machine';
-import { loadActiveSession, loadSession, loadSessionIndex, saveActiveSession } from '@/lib/session/repository';
+import { loadActiveSession, loadLastRun, saveActiveSession } from '@/lib/session/repository';
 
 const START = 1_800_000_000_000;
 
@@ -86,8 +86,8 @@ describe('useSessionMachine', () => {
     await act(async () => { result.current.advance(); });
 
     expect(result.current.state?.status).toBe('complete');
-    expect(loadSessionIndex('p1')).toEqual(['s1']);
-    expect(loadSession('s1')?.rounds).toHaveLength(1);
+    expect(loadLastRun()?.id).toBe('s1');
+    expect(loadLastRun()?.rounds).toHaveLength(1);
     expect(loadActiveSession()).toBeNull();
   });
 
@@ -97,8 +97,8 @@ describe('useSessionMachine', () => {
     vi.setSystemTime(START + 30_000);
     await act(async () => { result.current.end(); });
 
-    expect(loadSession('s1')?.completedAt).toBeNull();
-    expect(loadSession('s1')?.rounds).toEqual([]);
+    expect(loadLastRun()?.completedAt).toBeNull();
+    expect(loadLastRun()?.rounds).toEqual([]);
   });
 
   it('advances the displayed elapsed time as the clock actually runs', async () => {

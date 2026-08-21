@@ -8,6 +8,4 @@ export const STORAGE_KEYS = {
   activeSession: `${PREFIX}:active-session`,
   lastRun: `${PREFIX}:last-run`,
   prefs: (profileId: string) => `${PREFIX}:profile:${profileId}:prefs`,
-  sessionIndex: (profileId: string) => `${PREFIX}:profile:${profileId}:session-index`,
-  session: (sessionId: string) => `${PREFIX}:session:${sessionId}`,
 } as const;

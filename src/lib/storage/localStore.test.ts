@@ -11,8 +11,6 @@ describe('STORAGE_KEYS', () => {
   it('namespaces every key under ueddl:v1', () => {
     expect(STORAGE_KEYS.drinks).toBe('ueddl:v1:drinks');
     expect(STORAGE_KEYS.prefs('p1')).toBe('ueddl:v1:profile:p1:prefs');
-    expect(STORAGE_KEYS.sessionIndex('p1')).toBe('ueddl:v1:profile:p1:session-index');
-    expect(STORAGE_KEYS.session('s1')).toBe('ueddl:v1:session:s1');
   });
 });
 

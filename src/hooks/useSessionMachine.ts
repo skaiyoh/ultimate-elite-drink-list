@@ -12,7 +12,7 @@ import {
 import { averageMs } from '@/lib/session/metrics';
 import { systemRng } from '@/lib/session/rng';
 import {
-  clearActiveSession, commitSession, loadActiveSession, saveActiveSession,
+  clearActiveSession, loadActiveSession, saveActiveSession, saveLastRun,
 } from '@/lib/session/repository';
 import type { RoundRecord } from '@/lib/session/types';
 import type { WriteOutcome } from '@/lib/storage/localStore';
@@ -23,8 +23,8 @@ export interface SessionMachine {
   readonly elapsedMs: number;
   readonly averageMs: number | null;
   readonly lastRound: RoundRecord | null;
-  /** Non-null when the last write failed. 'quota' means history needs pruning. */
   /**
+   * Non-null when the last write failed.
    * Derived from WriteOutcome rather than restated, so it cannot drift from it.
    * Two separate stale-union bugs in this plan came from restating a type by hand.
    */
@@ -67,11 +67,11 @@ export function useSessionMachine(): SessionMachine {
     stateRef.current = next;
     let outcome;
     if (next.status === 'complete') {
-      outcome = commitSession(toRecord(next));
-      // Only clear the crash-recovery backup once the commit actually lands —
-      // if commitSession fails (e.g. quota), the backup is the only copy of
-      // every completed round, and deleting it here would destroy the session
-      // React still has rendered on screen.
+      outcome = saveLastRun(toRecord(next));
+      // Only clear the crash-recovery backup once the write actually lands —
+      // if it fails (e.g. quota), the backup is the only copy of every
+      // completed round, and deleting it here would destroy the run React
+      // still has rendered on screen.
       if (outcome === 'ok') clearActiveSession();
     } else {
       outcome = saveActiveSession(next);
