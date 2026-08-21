@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { ProfileProvider } from '@/components/profile/ProfileProvider';
+import { AppNav } from '@/components/ui/AppNav';
 import { StorageBanner } from '@/components/ui/StorageBanner';
 import '@/styles/global.css';
 
@@ -13,6 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <StorageBanner />
+        <AppNav />
         <ProfileProvider>{children}</ProfileProvider>
       </body>
     </html>

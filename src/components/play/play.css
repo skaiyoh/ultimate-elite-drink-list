@@ -17,3 +17,5 @@
 .rest[data-verdict='pass'] .rest__time { color: var(--color-pass); }
 .rest[data-verdict='miss'] .rest__time { color: var(--color-miss); }
 .rest__average, .rest__units { color: var(--color-muted); margin: 0; }
+
+.complete__links { display: flex; gap: var(--space-3); margin: var(--space-3) 0 0; }

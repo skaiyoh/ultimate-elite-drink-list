@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { SEED_CATEGORIES } from '@/data/seed-drinks';
 import {
   DEFAULT_DIFFICULTY_ID, DEFAULT_GOAL_MS, DEFAULT_ROUND_COUNT,
-  DIFFICULTIES, bandFor, defaultSessionConfig,
+  DIFFICULTIES, bandFor, defaultSessionConfig, difficultyLabel,
 } from '@/lib/session/config';
 import type { DifficultyId } from '@/lib/session/types';
 
@@ -55,5 +55,17 @@ describe('defaultSessionConfig', () => {
     expect(config.roundCount).toBe(DEFAULT_ROUND_COUNT);
     expect(config.difficultyId).toBe(DEFAULT_DIFFICULTY_ID);
     expect(config.goalMs).toBe(DEFAULT_GOAL_MS);
+  });
+});
+
+describe('difficultyLabel', () => {
+  it('gives the human label for a known difficulty', () => {
+    expect(difficultyLabel('rush')).toBe('Rush');
+  });
+
+  it('falls back to the stored id rather than throwing on a retired difficulty', () => {
+    // History outlives the presets table. A session saved under a difficulty
+    // that has since been renamed away must still render, not crash the screen.
+    expect(difficultyLabel('legacy' as never)).toBe('legacy');
   });
 });

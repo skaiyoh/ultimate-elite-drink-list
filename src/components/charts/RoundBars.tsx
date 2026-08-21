@@ -15,6 +15,12 @@ interface RoundBarsProps {
   readonly caption: string;
   readonly bars: readonly RoundBar[];
   readonly empty: string;
+  /**
+   * Off for a screen that already lists these rounds in visible text. The
+   * graphic is aria-hidden either way; keeping both would read every round
+   * time out twice.
+   */
+  readonly withDataTable?: boolean;
 }
 
 /** So a round that somehow recorded no time is still a mark on the chart. */
@@ -22,7 +28,7 @@ const MIN_BAR = 2;
 /** Fraction of each slot the bar fills; the rest is the gap to its neighbour. */
 const FILL = 0.72;
 
-export function RoundBars({ caption, bars, empty }: RoundBarsProps) {
+export function RoundBars({ caption, bars, empty, withDataTable = true }: RoundBarsProps) {
   const captionId = useId();
 
   if (bars.length === 0) {
@@ -66,6 +72,7 @@ export function RoundBars({ caption, bars, empty }: RoundBarsProps) {
 
       {/* Named by the visible caption rather than repeating it, so the text
           is not read out twice. */}
+      {withDataTable && (
       <table className="visually-hidden" aria-labelledby={captionId}>
         <thead>
           <tr><th scope="col">Round</th><th scope="col">Time</th><th scope="col">Result</th></tr>
@@ -81,6 +88,7 @@ export function RoundBars({ caption, bars, empty }: RoundBarsProps) {
           ))}
         </tbody>
       </table>
+      )}
     </figure>
   );
 }

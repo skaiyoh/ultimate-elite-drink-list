@@ -32,6 +32,13 @@ describe('RoundBars', () => {
     expect(screen.getByRole('row', { name: /Round 2/ })).toHaveTextContent('Miss');
   });
 
+  it('can drop its data table for a screen that already shows the numbers', () => {
+    render(<RoundBars caption="Recent rounds" bars={bars} empty="Nothing yet" withDataTable={false} />);
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    // The graphic still renders; only the duplicated reading of it is gone.
+    expect(screen.getByText('Recent rounds')).toBeInTheDocument();
+  });
+
   it('says why it is blank rather than drawing an empty box', () => {
     const { container } = render(<RoundBars caption="Recent rounds" bars={[]} empty="Run a session first" />);
     expect(screen.getByText('Run a session first')).toBeInTheDocument();

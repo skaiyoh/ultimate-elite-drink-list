@@ -39,3 +39,11 @@ export function defaultSessionConfig(): SessionConfig {
     categoryIds: SEED_CATEGORIES.map((c) => c.id) as CategoryId[],
   };
 }
+
+/**
+ * Display name for a difficulty. Unlike `bandFor`, this never throws: it is
+ * called with ids read back from stored history, which outlives this table.
+ */
+export function difficultyLabel(id: DifficultyId): string {
+  return DIFFICULTIES.find((d) => d.id === id)?.label ?? id;
+}
