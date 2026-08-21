@@ -236,11 +236,16 @@ change, so a broken layout would be baked into the new baseline as correct.
 
 No migration is written. A device holding data from the previous version has:
 
-- an **active session** carrying `profileId` — fails schema validation on read,
-  so `loadActiveSession` returns `null` and it is treated as absent. This is
-  already how corrupt data behaves and needs no new code.
-- **orphaned keys** (`profiles`, session records, per-profile prefs) — inert.
-  Nothing reads them; they occupy a few KB until the browser is cleared.
+- an **active session** carrying `profileId` — resumes normally. Zod object
+  schemas strip unknown keys rather than rejecting on them, so the extra field
+  is simply dropped on read. *(Corrected during planning: this section
+  previously claimed the record would fail validation and be treated as
+  absent. It does not, and resuming is the better outcome anyway — someone
+  mid-drill when the app updates keeps their session.)*
+- **orphaned keys** (`profiles`, `active-profile`, session records, per-profile
+  prefs) — inert. Nothing reads them; they occupy a few KB until the browser is
+  cleared. The old per-profile prefs key is not migrated, so the first session
+  after the update starts from the defaults.
 
 Writing a migration for a pre-release app with no users would be work spent
 protecting nobody. This is a deliberate omission, recorded so it is not
