@@ -13,6 +13,13 @@ describe('seed data integrity', () => {
     expect(new Set(names).size).toBe(names.length);
   });
 
+  it('never names two builds in one line, which is ambiguous mid-round', () => {
+    // A ticket line has to identify exactly one drink to make. "Vodka or Gin"
+    // asks the bartender to make a choice while the clock is running.
+    const ambiguous = SEED_DRINKS.filter((d) => / or /i.test(d.name));
+    expect(ambiguous.map((d) => d.name)).toEqual([]);
+  });
+
   it('uses only namespaced seed ids', () => {
     const malformed = SEED_DRINKS.filter((d) => !/^seed:[a-z0-9-]+$/.test(d.id));
     expect(malformed).toEqual([]);
