@@ -686,7 +686,35 @@ label naming what it measures; the round verdict announces once on entry to
 
 ## 13. Performance budget
 
-**< 175KB JS gzipped**, **< 30KB CSS**, LCP < 2.5s, CLS < 0.1, INP < 200ms.
+**App JS < 40KB gzipped on top of the framework floor**, **< 30KB CSS**,
+LCP < 2.5s, CLS < 0.1, INP < 200ms.
+
+**Corrected a third time, and this correction changes what is being measured.**
+A total-JS budget turned out to be a measurement of Next.js, not of this
+codebase. On Next 16.3.1 / React 19.2.8, Next's own built-in 404 page — the
+framework with no application code on it at all — transfers **197.5KB
+gzipped**. The 175KB total was therefore unreachable before a single line of
+this app was written, and hitting it was never within the project's control.
+
+Measured on the finished application: **203.2KB** on the heaviest route
+(`/stats`), against that **197.5KB** floor. **The whole application is 5.7KB
+gzipped.** Every route lands between 198 and 204KB, because essentially all of
+it is framework.
+
+So the budget is now expressed as the part that can actually be governed: what
+this codebase adds on top of whatever framework it sits on, capped at 40KB
+gzipped — roughly seven times current usage, which is room to grow without
+letting a charting library in unnoticed. `e2e/budget.spec.ts` enforces it by
+differencing the two routes, and separately asserts the runtime dependency list
+is still exactly `next`, `react`, `react-dom`, `zod`, since a 40KB library
+arriving on one route is the failure a byte total would miss.
+
+CSS measures **4.2–4.8KB gzipped** per route against the 30KB budget.
+
+The stack lever from the original note still stands and is now the *only* lever
+on the total: a Vite SPA baseline is roughly 45KB against Next's 197.5KB. That
+is a Task 1-scoped change, and nothing about the application code — which is
+5.7KB — would have to move.
 
 **Corrected twice, and the second correction reverses the first.** The 300KB
 app-page tier was set on evidence measured at an `<h1>`-only scaffold, where the

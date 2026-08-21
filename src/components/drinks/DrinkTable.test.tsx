@@ -1,5 +1,5 @@
 // src/components/drinks/DrinkTable.test.tsx
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { DrinkTable } from '@/components/drinks/DrinkTable';
 import { SEED_CATEGORIES } from '@/data/seed-drinks';
@@ -20,9 +20,11 @@ function renderTable(list: Drink[] = drinks) {
 describe('DrinkTable', () => {
   it('files each drink under its own category', () => {
     renderTable();
+    // Asserted on each row's rename field rather than on text content: the
+    // drink's name is an input value now, not a text node.
     const cocktails = screen.getByRole('table', { name: /Cocktails/ });
-    expect(cocktails).toHaveTextContent('Margarita');
-    expect(cocktails).not.toHaveTextContent('Cape Cod');
+    expect(within(cocktails).getByLabelText('Rename Margarita')).toBeInTheDocument();
+    expect(within(cocktails).queryByLabelText('Rename Cape Cod')).not.toBeInTheDocument();
   });
 
   it('counts what a round can actually be dealt from, not the raw total', () => {

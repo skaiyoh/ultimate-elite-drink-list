@@ -9,11 +9,32 @@
   --color-ink-on-ground: oklch(20% 0.010 60);
   --color-muted:   oklch(48% 0.010 60);
   --color-accent:  oklch(62% 0.130 75);
+  /* Text ON the brass accent. Dark in BOTH themes — brass is a light surface
+     in each, exactly like the docket. White here measures ~3.5:1 in light. */
+  --color-on-accent: oklch(18% 0.020 60);
+  /* Brass as TEXT on the ground. --color-accent is tuned to be a fill with
+     dark text on it; used as text on the light ground it measures 3.29:1,
+     under the 4.5:1 floor. Same split as --color-ink/--color-ink-on-ground:
+     one value cannot do both jobs. */
+  --color-accent-ink: oklch(45% 0.115 75);
+  /* Brass as TEXT on the docket. Dark in ALL THREE blocks — the paper stays
+     light, so the dark-theme accent would sit light-on-light here. */
+  --color-accent-on-docket: oklch(45% 0.115 75);
+  /* Muted text and hairlines ON the docket. Fixed in all themes, like
+     --color-ink: the paper does not invert. Measured 7.27:1 on the light
+     paper and 6.62:1 on the dark one, so it reads as muted without dropping
+     under the 4.5:1 floor that its 11.5px labels are held to. */
+  --color-muted-on-docket: oklch(45% 0.012 60);
+  --color-line-on-docket: oklch(86% 0.008 85);
   --color-pass:    oklch(52% 0.150 150);
   --color-miss:    oklch(52% 0.190 25);
   --color-line:    oklch(85% 0.010 85);
 
+  --text-eyebrow: 0.72rem;
   --text-body:  clamp(0.95rem, 0.9rem + 0.2vw, 1.05rem);
+  --text-h3:    clamp(1.05rem, 1rem + 0.3vw, 1.2rem);
+  --text-h2:    clamp(1.3rem, 1.1rem + 0.9vw, 1.9rem);
+  --text-h1:    clamp(2rem, 1.4rem + 2.6vw, 3.4rem);
   --text-drink: clamp(1.15rem, 1rem + 0.6vw, 1.6rem);
   --text-clock: clamp(3.5rem, 2rem + 8vw, 7rem);
 
@@ -35,6 +56,9 @@
     --color-ink-on-ground: oklch(92% 0.008 85);
     --color-muted:  oklch(62% 0.010 60);
     --color-accent: oklch(74% 0.130 75);
+    --color-on-accent: oklch(18% 0.020 60);
+    --color-accent-ink: oklch(78% 0.120 75);
+    --color-accent-on-docket: oklch(45% 0.115 75);
     --color-pass:   oklch(72% 0.160 150);
     --color-miss:   oklch(60% 0.190 25);
     --color-line:   oklch(30% 0.010 60);
@@ -48,6 +72,9 @@
   --color-ink-on-ground: oklch(92% 0.008 85);
   --color-muted:  oklch(62% 0.010 60);
   --color-accent: oklch(74% 0.130 75);
+  --color-on-accent: oklch(18% 0.020 60);
+  --color-accent-ink: oklch(78% 0.120 75);
+  --color-accent-on-docket: oklch(45% 0.115 75);
   --color-pass:   oklch(72% 0.160 150);
   --color-miss:   oklch(60% 0.190 25);
   --color-line:   oklch(30% 0.010 60);

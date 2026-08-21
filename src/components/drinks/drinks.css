@@ -1,7 +1,10 @@
 /* src/components/drinks/drinks.css */
 .drinks-group { margin: 0 0 var(--space-4); }
 
-.drinks-table { width: 100%; border-collapse: collapse; }
+/* The page body never scrolls sideways; a table too wide for a phone scrolls
+   inside its own box instead. */
+.drinks-scroll { overflow-x: auto; }
+.drinks-table { width: 100%; min-width: 20rem; border-collapse: collapse; }
 .drinks-table th[scope='col'] {
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -30,11 +33,16 @@
 .drink__field:hover { border-color: var(--color-line); }
 .drink__field:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; border-color: transparent; }
 
-.drink__actions { display: flex; gap: var(--space-1); justify-content: flex-end; }
+.drink__actions { display: flex; gap: var(--space-1); justify-content: flex-end; white-space: nowrap; }
 .drink__delete { color: var(--color-miss); }
 
-.transfer { display: grid; gap: var(--space-2); margin: 0 0 var(--space-4); }
+/* minmax(0, 1fr), not the implicit `auto`: an auto column takes its
+   min-content size from the file input inside it, so the column grew to the
+   input's 331px intrinsic width and no max-width on the input could win —
+   the input was defining the box it was being measured against. */
+.transfer { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); margin: 0 0 var(--space-4); }
 .transfer__row { display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; }
+.transfer__row > * { min-width: 0; }
 .transfer__error { margin: 0; color: var(--color-miss); }
 .transfer__diff { margin: 0; color: var(--color-muted); }
 .transfer__modes { display: flex; gap: var(--space-2); border: 0; padding: 0; margin: 0; }

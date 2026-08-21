@@ -49,3 +49,21 @@ export function polylinePoints(
       `${Math.round(xFor(index, values.length, width))},${Math.round(yFor(value, extent, height))}`)
     .join(' ');
 }
+
+/**
+ * The same series as `polylinePoints`, closed down to the baseline so it can be
+ * filled. The fill turns the gap between a series and its reference line into a
+ * readable shape — on the trend chart, that gap is how far under goal you are,
+ * which is the thing worth seeing.
+ */
+export function areaPoints(
+  values: readonly number[], extent: Extent, width: number, height: number,
+): string {
+  const line = polylinePoints(values, extent, width, height);
+  if (line === '') return '';
+
+  const first = Math.round(xFor(0, values.length, width));
+  const last = Math.round(xFor(values.length - 1, values.length, width));
+  const floor = Math.round(height);
+  return `${first},${floor} ${line} ${last},${floor}`;
+}

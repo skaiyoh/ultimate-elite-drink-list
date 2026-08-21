@@ -13,7 +13,7 @@
   margin-bottom: var(--space-1);
 }
 
-.chart__legend { text-transform: none; letter-spacing: 0; color: var(--color-accent); }
+.chart__legend { text-transform: none; letter-spacing: 0; color: var(--color-accent-ink); }
 
 .chart__svg {
   display: block;
@@ -24,10 +24,14 @@
 
 .chart__line { fill: none; stroke: var(--color-accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
 .chart__dot { fill: var(--color-accent); }
+.chart__area { fill: var(--color-accent); opacity: 0.14; }
 .chart__reference { stroke: var(--color-muted); stroke-width: 1; stroke-dasharray: 4 4; }
 
-.chart__bar { fill: var(--color-pass); }
-.chart__bar[data-verdict='miss'] { fill: var(--color-miss); }
+/* Mixed toward the ground rather than used at full chroma: thirty passing
+   rounds at full saturation is a wall of colour, and the verdict is the
+   signal, not the intensity. */
+.chart__bar { fill: color-mix(in oklch, var(--color-pass) 78%, var(--color-ground)); }
+.chart__bar[data-verdict='miss'] { fill: color-mix(in oklch, var(--color-miss) 78%, var(--color-ground)); }
 
 .chart__empty {
   margin: 0;

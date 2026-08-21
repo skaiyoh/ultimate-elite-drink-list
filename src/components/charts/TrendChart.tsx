@@ -1,7 +1,7 @@
 import { useId } from 'react';
 import { GoalLine } from '@/components/charts/GoalLine';
 import { PLOT_HEIGHT, PLOT_WIDTH, PAD_X, PAD_Y, VIEW_HEIGHT, VIEW_WIDTH } from '@/components/charts/box';
-import { extentOf, polylinePoints, xFor, yFor } from '@/lib/charts/geometry';
+import { areaPoints, extentOf, polylinePoints, xFor, yFor } from '@/lib/charts/geometry';
 import './charts.css';
 
 export interface TrendPoint {
@@ -46,6 +46,9 @@ export function TrendChart({ caption, points, format, reference, empty }: TrendC
       <svg className="chart__svg" viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`} aria-hidden="true" focusable="false">
         <g transform={`translate(${PAD_X} ${PAD_Y})`}>
           {reference && <GoalLine y={yFor(reference.value, extent, PLOT_HEIGHT)} width={PLOT_WIDTH} />}
+          {/* Filled, so the distance from the series to the reference reads as
+              a shape rather than as empty chart. */}
+          <polygon className="chart__area" points={areaPoints(values, extent, PLOT_WIDTH, PLOT_HEIGHT)} />
           <polyline
             className="chart__line"
             points={polylinePoints(values, extent, PLOT_WIDTH, PLOT_HEIGHT)}

@@ -29,6 +29,7 @@ export function DrinkTable({ drinks, categories, ...handlers }: DrinkTableProps)
             {inCategory.length === 0 ? (
               <p className="empty">Nothing in {category.label} yet.</p>
             ) : (
+              <div className="drinks-scroll">
               <table className="drinks-table" aria-label={category.label}>
                 <thead>
                   <tr>
@@ -43,6 +44,7 @@ export function DrinkTable({ drinks, categories, ...handlers }: DrinkTableProps)
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </section>
         );

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extentOf, polylinePoints, xFor, yFor } from '@/lib/charts/geometry';
+import { areaPoints, extentOf, polylinePoints, xFor, yFor } from '@/lib/charts/geometry';
 
 describe('extentOf', () => {
   it('spans the values it is given', () => {
@@ -88,5 +88,20 @@ describe('polylinePoints', () => {
 
   it('rounds to keep the markup small', () => {
     expect(polylinePoints([33], { min: 0, max: 100 }, 100, 100)).toBe('50,67');
+  });
+});
+
+describe('areaPoints', () => {
+  it('closes the line down to the baseline so it encloses a shape', () => {
+    // The line runs 0,50 -> 100,0; the area adds the two floor corners.
+    expect(areaPoints([0, 100], { min: 0, max: 100 }, 100, 50)).toBe('0,50 0,50 100,0 100,50');
+  });
+
+  it('is empty for an empty series, so no stray triangle is drawn', () => {
+    expect(areaPoints([], { min: 0, max: 1 }, 100, 50)).toBe('');
+  });
+
+  it('encloses a single point against the baseline rather than a bare dot', () => {
+    expect(areaPoints([50], { min: 0, max: 100 }, 100, 100)).toBe('50,100 50,50 50,100');
   });
 });

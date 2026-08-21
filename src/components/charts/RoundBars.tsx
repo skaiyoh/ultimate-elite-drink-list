@@ -27,6 +27,8 @@ interface RoundBarsProps {
 const MIN_BAR = 2;
 /** Fraction of each slot the bar fills; the rest is the gap to its neighbour. */
 const FILL = 0.72;
+/** Ceiling in viewBox units: three rounds should read as bars, not as slabs. */
+const MAX_BAR = 40;
 
 export function RoundBars({ caption, bars, empty, withDataTable = true }: RoundBarsProps) {
   const captionId = useId();
@@ -43,8 +45,12 @@ export function RoundBars({ caption, bars, empty, withDataTable = true }: RoundB
   // Bars are read against zero, not against the fastest round — a bar chart
   // that starts partway up exaggerates every difference between rounds.
   const extent = extentOf(bars.map((bar) => bar.durationMs), [0]);
-  const slot = PLOT_WIDTH / bars.length;
+  // Capping the slot rather than only the bar keeps the gaps proportional: a
+  // three-round history clusters in the middle instead of leaving three narrow
+  // bars marooned in very wide slots.
+  const slot = Math.min(PLOT_WIDTH / bars.length, MAX_BAR / FILL);
   const barWidth = slot * FILL;
+  const inset = (PLOT_WIDTH - slot * bars.length) / 2;
 
   return (
     <figure className="chart">
@@ -60,7 +66,7 @@ export function RoundBars({ caption, bars, empty, withDataTable = true }: RoundB
                 key={bar.key}
                 className="chart__bar"
                 data-verdict={bar.verdict}
-                x={index * slot + (slot - barWidth) / 2}
+                x={inset + index * slot + (slot - barWidth) / 2}
                 y={PLOT_HEIGHT - height}
                 width={barWidth}
                 height={height}

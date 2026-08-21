@@ -55,19 +55,29 @@ export function DrinkRow({ drink, categories, onRename, onRecategorize, onToggle
       </td>
 
       <td className="drink__actions">
-        <button type="button" onClick={() => onToggle(drink.id, !drink.enabled)}>
-          {drink.enabled ? `86 ${drink.name}` : `Restore ${drink.name}`}
+        {/* The drink's name lives in aria-label, not in the visible text.
+            Assistive tech needs each row's controls to be tellable apart;
+            painting the name three times per row was both noisy and what
+            pushed the table off a phone. A hidden span would work too, but
+            its leading space collapses out of the computed name. */}
+        <button
+          type="button"
+          aria-label={drink.enabled ? `86 ${drink.name}` : `Restore ${drink.name}`}
+          onClick={() => onToggle(drink.id, !drink.enabled)}
+        >
+          {drink.enabled ? '86' : 'Restore'}
         </button>
         <button
           type="button"
           className="drink__delete"
+          aria-label={`Delete ${drink.name}`}
           onClick={() => {
             // Deleting a seed drink is remembered forever, so it is worth one
             // question rather than an undo that does not exist.
             if (window.confirm(`Delete ${drink.name}?`)) onDelete(drink.id);
           }}
         >
-          Delete {drink.name}
+          Delete
         </button>
       </td>
     </tr>

@@ -1,0 +1,55 @@
+/* src/app/profiles.css */
+@import '../app/history/history.css';
+
+.profiles {
+  list-style: none;
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: var(--space-2);
+}
+
+.profile {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  transition: border-color var(--duration-fast) var(--ease-out-expo);
+}
+
+.profile:hover { border-color: var(--color-accent); }
+.profile[data-active='true'] { border-color: var(--color-accent); }
+
+/* The name is the card's action, so it reads as the surface, not a button
+   sitting on one — the brass fill lands on the whole card when it is active. */
+.profile__pick {
+  border: 0;
+  padding: var(--space-1) 0;
+  font-family: var(--font-display), sans-serif;
+  font-size: var(--text-h3);
+  text-align: left;
+}
+
+.profile__pick[aria-pressed='true'] { background: transparent; color: var(--color-accent-ink); }
+.profile[data-active='true'] .profile__pick::after { content: ' ·  drilling'; font-size: var(--text-eyebrow); letter-spacing: 0.1em; }
+
+.profile__remove { align-self: flex-start; padding: 0.35em 0; font-size: var(--text-eyebrow); letter-spacing: 0.1em; text-transform: uppercase; }
+.profile__remove:hover { color: var(--color-miss); }
+
+.profiles__add {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-line);
+}
+
+.profiles__go { margin: var(--space-4) 0 0; }
+
+/* A link that acts as the screen's primary action still needs button padding. */
+.profiles__go .is-primary { display: inline-block; border-bottom: 0; }

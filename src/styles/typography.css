@@ -1,0 +1,60 @@
+/* src/styles/typography.css
+ *
+ * Two roles, per spec §10.
+ *
+ * The docket face (Archivo Narrow) names things: headings and drink names. It
+ * is condensed, so a long drink name holds one line on a ticket instead of
+ * wrapping and pushing the round's shape around.
+ *
+ * The instrument face (IBM Plex Sans) carries everything measured: the clock,
+ * quantities, round times, counts, and all body text. Its figures are tabular,
+ * which is the whole reason it is here — proportional digits make a running
+ * clock visibly twitch as the numerals change width.
+ */
+
+body {
+  font-family: var(--font-body), system-ui, -apple-system, sans-serif;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.5;
+}
+
+h1, h2, h3,
+.ticket__name,
+.session__link,
+.chart__caption {
+  font-family: var(--font-display), var(--font-body), system-ui, sans-serif;
+  line-height: 1.05;
+  letter-spacing: 0.005em;
+}
+
+h1, h2, h3 { font-weight: 600; margin: 0 0 var(--space-2); }
+
+h1 { font-size: var(--text-h1); }
+h2 { font-size: var(--text-h2); }
+h3 { font-size: var(--text-h3); }
+
+/* Small, spaced, uppercase: the label on a printed docket, not a heading. */
+.eyebrow,
+.chart__caption,
+.stat dt,
+.nav,
+.drinks-table th[scope='col'],
+.rounds th[scope='col'],
+.clock__label {
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: var(--text-eyebrow);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Numbers that are read at a glance rather than in a sentence. */
+.clock__value,
+.rest__time,
+.stat__value,
+.session__average {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.stat__value { font-weight: 500; letter-spacing: -0.01em; line-height: 1.05; }

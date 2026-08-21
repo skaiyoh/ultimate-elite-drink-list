@@ -4,7 +4,9 @@
  * The SVG scales with CSS; these are viewBox units, not device pixels.
  */
 export const VIEW_WIDTH = 600;
-export const VIEW_HEIGHT = 180;
+// Deliberately wide: rendered at the page's full width, a 3:1 box came out
+// nearly 300px tall and read as empty space with a line in it.
+export const VIEW_HEIGHT = 132;
 
 /** Room for the dots and the topmost bar cap to sit inside the frame. */
 export const PAD_X = 8;

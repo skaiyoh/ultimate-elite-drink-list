@@ -1,9 +1,22 @@
 /* src/components/play/play.css */
-.ticket { list-style: none; margin: 0; padding: var(--space-2); background: var(--color-docket); color: var(--color-ink); border-radius: var(--radius); }
+/* padding:0 matters — list-style:none does not remove the UA list indent,
+   which pushed every line in past the docket's own header rule. */
+.ticket { list-style: none; margin: 0; padding: 0; }
 .ticket__line { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-2); padding: var(--space-1) 0; border-bottom: 1px solid var(--color-line); }
 .ticket__line:last-child { border-bottom: 0; }
+.ticket__line { border-bottom-color: var(--color-line-on-docket); }
 .ticket__name { font-size: var(--text-drink); }
-.ticket__qty { font-size: var(--text-drink); color: var(--color-accent); font-weight: 700; }
+/* A fixed rail rather than a shrink-to-fit span: spec §10 asks for quantities
+   to "scan as a column", which they only do if ×1 and ×10 occupy the same
+   width. Tabular figures do the rest. */
+.ticket__qty {
+  font-size: var(--text-drink);
+  color: var(--color-accent-on-docket);
+  font-weight: 700;
+  min-width: 3.5ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
 
 .clock { display: grid; justify-items: center; margin: var(--space-3) 0; }
 .clock__label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-muted); }
@@ -19,3 +32,50 @@
 .rest__average, .rest__units { color: var(--color-muted); margin: 0; }
 
 .complete__links { display: flex; gap: var(--space-3); margin: var(--space-3) 0 0; }
+
+/* The round label is demoted to a docket eyebrow: the clock is the hero, and
+   two large headings on one screen means neither of them is. */
+.round-label {
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: var(--text-eyebrow);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-muted);
+  margin: 0 0 var(--space-1);
+}
+
+.play-actions { display: flex; gap: var(--space-2); margin-top: var(--space-3); flex-wrap: wrap; }
+
+.docket-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-1);
+  border-bottom: 1px solid var(--color-line-on-docket);
+  font-size: var(--text-eyebrow);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-muted-on-docket);
+}
+
+.hint { color: var(--color-muted); font-size: 0.9rem; }
+
+/* Motion (spec §10): transform and opacity only — nothing that forces layout.
+   The docket arrives as if torn off the rail and dropped in front of you; the
+   verdict lands rather than appearing. */
+@keyframes docket-in {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes verdict-in {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.ticket-docket { animation: docket-in 320ms var(--ease-out-expo) both; }
+.rest { animation: verdict-in 280ms var(--ease-out-expo) both; }
