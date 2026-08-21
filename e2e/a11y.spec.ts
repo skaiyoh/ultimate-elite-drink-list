@@ -1,7 +1,7 @@
 // e2e/a11y.spec.ts — axe on every route, in both themes (spec §12).
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { createProfile, runSession } from './helpers';
+import { createProfile } from './helpers';
 
 type Theme = 'light' | 'dark';
 
@@ -64,31 +64,6 @@ const routes: readonly { readonly name: string; readonly open: (page: Page) => P
     open: async (page) => {
       await page.getByRole('link', { name: 'Drinks' }).click();
       await expect(page.getByRole('heading', { name: 'Drinks', level: 1 })).toBeVisible();
-    },
-  },
-  {
-    name: 'history',
-    open: async (page) => {
-      await runSession(page, 3);
-      await page.getByRole('link', { name: 'History' }).click();
-      await expect(page.getByRole('heading', { name: 'History' })).toBeVisible();
-    },
-  },
-  {
-    name: 'summary',
-    open: async (page) => {
-      await runSession(page, 3);
-      await page.getByRole('link', { name: 'View summary' }).click();
-      await expect(page.getByRole('heading', { name: 'Session summary' })).toBeVisible();
-    },
-  },
-  {
-    name: 'stats',
-    open: async (page) => {
-      await runSession(page, 3);
-      await page.getByRole('link', { name: 'History' }).click();
-      await page.getByRole('link', { name: 'Stats' }).click();
-      await expect(page.getByRole('heading', { name: 'Stats' })).toBeVisible();
     },
   },
 ];

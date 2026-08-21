@@ -74,12 +74,8 @@ export default function PlayPage() {
           ))}
         </ol>
         <p className="complete__links">
-          {/* The session is already committed by the time this renders, so the
-              summary link is safe to follow immediately. */}
-          <Link href={`/summary/${state.id}`}>View summary</Link>
           {/* The nav is suppressed on /play, so every way off this screen has
               to be offered here or the session ends in a dead end. */}
-          <Link href="/history">History</Link>
           <Link href="/setup">Run another</Link>
         </p>
       </main>

@@ -2,7 +2,6 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useProfiles } from '@/components/profile/ProfileProvider';
-import './profiles.css';
 
 export default function ProfilePage() {
   const { hydrated, profiles, activeProfile, create, select, remove } = useProfiles();

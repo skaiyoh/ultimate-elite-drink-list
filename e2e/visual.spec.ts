@@ -1,4 +1,4 @@
-// e2e/visual.spec.ts — spec §12: the five review-worthy screens at four
+// e2e/visual.spec.ts — spec §12: the three review-worthy screens at four
 // breakpoints, in both themes. Playwright disables animations for screenshots,
 // so the docket's arrival does not make these flake.
 //
@@ -6,7 +6,7 @@
 // they will differ on font rasterisation alone, so regenerate rather than
 // debug if this suite is ever run elsewhere.
 import { expect, test, type Page } from '@playwright/test';
-import { createProfile, seedHistory, seedSevenDrinks } from './helpers';
+import { createProfile, seedSevenDrinks } from './helpers';
 
 const WIDTHS = [320, 768, 1024, 1440] as const;
 const THEMES = ['light', 'dark'] as const;
@@ -67,22 +67,6 @@ const screens: readonly Screen[] = [
     volatile: ['.rest__units'],
   },
   {
-    name: 'stats',
-    go: async (page) => {
-      await seedHistory(page);
-      await page.goto('/stats');
-      await expect(page.getByRole('heading', { name: 'Stats' })).toBeVisible();
-    },
-  },
-  {
-    name: 'history',
-    go: async (page) => {
-      await seedHistory(page);
-      await page.goto('/history');
-      await expect(page.getByRole('heading', { name: 'History' })).toBeVisible();
-    },
-  },
-  {
     name: 'drinks',
     fullPage: false,
     go: async (page) => {
@@ -115,7 +99,7 @@ for (const width of [320, 375, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 900 });
     await open(page, 'dark', async () => {});
 
-    for (const path of ['/', '/setup', '/history', '/stats', '/drinks']) {
+    for (const path of ['/', '/setup', '/drinks']) {
       await page.goto(path);
       await expect(page.getByRole('heading').first()).toBeVisible();
 

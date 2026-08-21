@@ -37,57 +37,6 @@ export async function abandonSession(page: Page): Promise<void> {
 }
 
 /**
- * Writes a fixed history straight into storage.
- *
- * Screens that render a dealt round or aggregate one are otherwise different
- * on every run — the generator is random by design — which makes screenshot
- * baselines flake rather than catch anything. Seeding fixed numbers gives the
- * charts a real shape to be compared against, too.
- */
-export async function seedHistory(page: Page): Promise<void> {
-  await page.evaluate(() => {
-    const profileId = JSON.parse(localStorage.getItem('ueddl:v1:active-profile') ?? 'null');
-    if (profileId === null) throw new Error('seedHistory needs an active profile');
-
-    const day = 86_400_000;
-    const paces = [7.4, 7.0, 7.9, 6.6, 6.9, 6.1, 6.4, 5.8];
-    const ids: string[] = [];
-
-    paces.forEach((pace, s) => {
-      const id = `seeded-${s}`;
-      ids.unshift(id);
-      const rounds = Array.from({ length: 5 }, (_, r) => {
-        const units = 12 + ((s * 3 + r * 5) % 5);
-        const wobble = 1 + (((s * 7 + r * 13) % 11) - 5) / 28;
-        const durationMs = Math.round(pace * 1000 * units * wobble);
-        return {
-          index: r,
-          ticket: [{ drinkId: 'seeded', name: 'Seeded', categoryId: 'shot', quantity: units }],
-          totalUnits: units, startedAt: 0, endedAt: durationMs, pausedMs: 0, durationMs,
-        };
-      });
-
-      // Fixed epoch instants, not offsets from now: a date that moves is one
-      // more thing for a baseline to disagree with tomorrow.
-      const startedAt = Date.UTC(2026, 0, 5) + s * day * 5;
-      localStorage.setItem(`ueddl:v1:session:${id}`, JSON.stringify({
-        id, profileId, startedAt, completedAt: startedAt + 1,
-        config: {
-          roundCount: 5,
-          difficultyId: s % 3 === 0 ? 'rush' : 'standard',
-          band: s % 3 === 0 ? [18, 24] : [12, 16],
-          goalMs: 240_000,
-          categoryIds: ['shot', 'well', 'cocktail', 'martini'],
-        },
-        rounds,
-      }));
-    });
-
-    localStorage.setItem(`ueddl:v1:profile:${profileId}:session-index`, JSON.stringify(ids));
-  });
-}
-
-/**
  * Cuts the pool down to exactly seven drinks.
  *
  * A round deals seven of whatever is enabled, so this fixes the dealt ticket.

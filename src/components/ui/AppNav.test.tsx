@@ -12,22 +12,22 @@ describe('AppNav', () => {
   it('links to every top-level screen', () => {
     render(<AppNav />);
     expect(screen.getByRole('navigation', { name: 'Main navigation' })).toBeInTheDocument();
-    for (const label of ['Profiles', 'Drill', 'History', 'Stats', 'Drinks']) {
+    for (const label of ['Profiles', 'Drill', 'Drinks']) {
       expect(screen.getByRole('link', { name: label })).toBeInTheDocument();
     }
   });
 
-  it('marks the screen you are on', () => {
-    pathname = '/history';
+  it('offers no analytics screens', () => {
     render(<AppNav />);
-    expect(screen.getByRole('link', { name: 'History' })).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('link', { name: 'Stats' })).not.toHaveAttribute('aria-current');
+    expect(screen.queryByRole('link', { name: 'History' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Stats' })).not.toBeInTheDocument();
   });
 
-  it('treats a session summary as part of History', () => {
-    pathname = '/summary/abc';
+  it('marks the screen you are on', () => {
+    pathname = '/drinks';
     render(<AppNav />);
-    expect(screen.getByRole('link', { name: 'History' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Drinks' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Drill' })).not.toHaveAttribute('aria-current');
   });
 
   it('disappears during a round, where a stray tap would discard it', () => {
