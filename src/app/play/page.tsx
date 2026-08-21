@@ -76,6 +76,7 @@ export default function PlayPage() {
         <p className="complete__links">
           {/* The nav is suppressed on /play, so every way off this screen has
               to be offered here or the session ends in a dead end. */}
+          <Link href="/results">View last run</Link>
           <Link href="/setup">Run another</Link>
         </p>
       </main>

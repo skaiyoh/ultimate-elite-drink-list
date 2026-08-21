@@ -63,3 +63,40 @@ export async function seedSevenDrinks(page: Page): Promise<void> {
     }));
   });
 }
+
+/**
+ * Writes a fixed finished run straight to storage.
+ *
+ * The generator is random by design, so a screenshot of a real run differs
+ * every time. Fixed numbers give the bars a real shape to be compared against
+ * and make the baseline mean something.
+ */
+export async function seedLastRun(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const durations = [214_000, 238_000, 261_000, 226_000, 249_000];
+    const rounds = durations.map((durationMs, index) => ({
+      index,
+      ticket: [{ drinkId: 'seeded', name: 'Seeded Drink', categoryId: 'shot', quantity: 13 }],
+      totalUnits: 13,
+      startedAt: 0,
+      endedAt: durationMs,
+      pausedMs: 0,
+      durationMs,
+    }));
+
+    // A fixed epoch instant, not an offset from now: a date that moves is one
+    // more thing for a baseline to disagree with tomorrow.
+    const startedAt = Date.UTC(2026, 0, 5, 19, 42);
+    localStorage.setItem('ueddl:v1:last-run', JSON.stringify({
+      id: 'seeded-run',
+      profileId: 'seeded-profile',
+      startedAt,
+      completedAt: startedAt + 1,
+      config: {
+        roundCount: 5, difficultyId: 'standard', band: [12, 16], goalMs: 240_000,
+        categoryIds: ['shot', 'well', 'cocktail', 'martini'],
+      },
+      rounds,
+    }));
+  });
+}

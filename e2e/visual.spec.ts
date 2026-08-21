@@ -6,7 +6,7 @@
 // they will differ on font rasterisation alone, so regenerate rather than
 // debug if this suite is ever run elsewhere.
 import { expect, test, type Page } from '@playwright/test';
-import { createProfile, seedSevenDrinks } from './helpers';
+import { createProfile, seedLastRun, seedSevenDrinks } from './helpers';
 
 const WIDTHS = [320, 768, 1024, 1440] as const;
 const THEMES = ['light', 'dark'] as const;
@@ -65,6 +65,14 @@ const screens: readonly Screen[] = [
       await expect(page.getByRole('button', { name: 'Start round 2' })).toBeVisible();
     },
     volatile: ['.rest__units'],
+  },
+  {
+    name: 'results',
+    go: async (page) => {
+      await seedLastRun(page);
+      await page.goto('/results');
+      await expect(page.getByRole('heading', { name: 'Last run' })).toBeVisible();
+    },
   },
   {
     name: 'drinks',

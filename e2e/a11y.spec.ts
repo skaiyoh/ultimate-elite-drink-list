@@ -60,6 +60,13 @@ const routes: readonly { readonly name: string; readonly open: (page: Page) => P
     },
   },
   {
+    name: 'results',
+    open: async (page) => {
+      await page.getByRole('link', { name: 'Last run' }).click();
+      await expect(page.getByRole('heading', { name: 'Last run' })).toBeVisible();
+    },
+  },
+  {
     name: 'drinks',
     open: async (page) => {
       await page.getByRole('link', { name: 'Drinks' }).click();
