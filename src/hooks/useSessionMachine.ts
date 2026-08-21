@@ -34,6 +34,8 @@ export interface SessionMachine {
   resume(): void;
   advance(): void;
   end(): void;
+  /** Scraps the run: nothing is recorded, and the backup is discarded. */
+  startOver(): void;
 }
 
 export function useSessionMachine(): SessionMachine {
@@ -98,6 +100,16 @@ export function useSessionMachine(): SessionMachine {
   const advance = useCallback(() => apply({ type: 'advance', at: Date.now() }), [apply]);
   const end = useCallback(() => apply({ type: 'end', at: Date.now() }), [apply]);
 
+  const startOver = useCallback(() => {
+    // Deliberately not routed through `apply`: every other action persists
+    // what it produces, and the whole point of this one is that nothing about
+    // the scrapped run is written anywhere.
+    clearActiveSession();
+    stateRef.current = null;
+    setStorageWarning(null);
+    setState(null);
+  }, []);
+
   const running = state?.status === 'running';
   // The ticker stops while paused, and that is safe: elapsedMs cancels `now`
   // out entirely once pausedAt is set, so a stale reading still renders right.
@@ -111,6 +123,6 @@ export function useSessionMachine(): SessionMachine {
     averageMs: state ? averageMs(state.rounds) : null,
     lastRound: state && state.rounds.length > 0 ? state.rounds[state.rounds.length - 1] : null,
     storageWarning,
-    startRound, pause, resume, advance, end,
+    startRound, pause, resume, advance, end, startOver,
   };
 }

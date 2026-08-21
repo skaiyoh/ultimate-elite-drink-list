@@ -1,12 +1,12 @@
 'use client';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { RestCard } from '@/components/play/RestCard';
 import { RoundClock } from '@/components/play/RoundClock';
 import { StorageWarning } from '@/components/play/StorageWarning';
 import { Ticket } from '@/components/play/Ticket';
 import { useSessionMachine } from '@/hooks/useSessionMachine';
-import { formatDuration } from '@/lib/format/duration';
 
 export default function PlayPage() {
   const machine = useSessionMachine();
@@ -19,6 +19,23 @@ export default function PlayPage() {
   // `const` declaration in that scope (a compile error), not a shadow — the
   // `if (state === null) return …` between them doesn't open a new block.
   const currentStatus = state?.status;
+
+  const router = useRouter();
+
+  // A finished run is shown on /results, not here — one screen renders a
+  // finished run whether you have just finished it or come back to it later.
+  // `replace`, not `push`: Back must not return to a /play whose session has
+  // already been cleared.
+  useEffect(() => {
+    if (currentStatus === 'complete') router.replace('/results');
+  }, [currentStatus, router]);
+
+  const confirmStartOver = () => {
+    // One question, because there is no undo: the run is not written anywhere.
+    if (!window.confirm('Start over? This run will not be saved.')) return;
+    machine.startOver();
+    router.replace('/setup');
+  };
 
   // Depends on `currentStatus` and the action callbacks, never on `machine` or
   // `state` themselves. `elapsedMs` changes on every ~100ms tick, so the
@@ -62,27 +79,6 @@ export default function PlayPage() {
 
   const { config, rounds, status } = state;
 
-  if (status === 'complete') {
-    return (
-      <main>
-        <StorageWarning warning={storageWarning} />
-        <h1>{state.completedAt === null ? 'Session ended early' : 'Session complete'}</h1>
-        <p>Average {averageMs === null ? '—' : formatDuration(averageMs)} against a {formatDuration(config.goalMs)} goal</p>
-        <ol aria-label="Round times">
-          {rounds.map((round) => (
-            <li key={round.index}>Round {round.index + 1}: {formatDuration(round.durationMs)}</li>
-          ))}
-        </ol>
-        <p className="complete__links">
-          {/* The nav is suppressed on /play, so every way off this screen has
-              to be offered here or the session ends in a dead end. */}
-          <Link href="/results">View last run</Link>
-          <Link href="/setup">Run another</Link>
-        </p>
-      </main>
-    );
-  }
-
   if (status === 'resting') {
     return (
       <main>
@@ -91,6 +87,7 @@ export default function PlayPage() {
         {lastRound && <RestCard round={lastRound} goalMs={config.goalMs} averageMs={averageMs} />}
         <p className="play-actions">
           <button className="is-primary" onClick={machine.startRound}>Start round {rounds.length + 1}</button>
+          <button className="is-quiet" onClick={confirmStartOver}>Start over</button>
         </p>
         <p className="hint">Space starts the round. The clock is stopped until you do.</p>
       </main>
@@ -111,6 +108,7 @@ export default function PlayPage() {
         <button onClick={status === 'paused' ? machine.resume : machine.pause}>
           {status === 'paused' ? 'Resume' : 'Pause'}
         </button>
+        <button className="is-quiet" onClick={confirmStartOver}>Start over</button>
       </p>
     </main>
   );

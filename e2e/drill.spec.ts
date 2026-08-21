@@ -1,5 +1,6 @@
 // e2e/drill.spec.ts
 import { expect, test } from '@playwright/test';
+import { abandonSession, createProfile } from './helpers';
 
 async function createProfileAndOpenSetup(page: import('@playwright/test').Page) {
   await page.goto('/');
@@ -19,8 +20,13 @@ test('runs a full three-round session and reports the average', async ({ page })
     await page.getByRole('button', { name: 'Next round' }).click();
   }
 
-  await expect(page.getByRole('heading', { name: 'Session complete' })).toBeVisible();
-  await expect(page.getByRole('list', { name: 'Round times' }).getByRole('listitem')).toHaveCount(3);
+  // A finished run now lands on /results rather than rendering its own copy
+  // of the summary inline — see the "finished run lands on the results
+  // screen" test below for the redirect itself; this test's own concern is
+  // that the session actually reports the average once it gets there.
+  await expect(page.getByRole('heading', { name: 'Last run' })).toBeVisible();
+  await expect(page.getByRole('main')).toContainText('Average');
+  await expect(page.getByRole('table', { name: 'Rounds' }).getByRole('row')).toHaveCount(4);
 });
 
 test('hides the next ticket until the round is started', async ({ page }) => {
@@ -78,4 +84,76 @@ test('blocks starting a session with too small a pool', async ({ page }) => {
   // matches two elements. The setup guard's alert is the one inside `main`.
   await expect(page.getByRole('main').getByRole('alert')).toContainText('A round needs 7');
   await expect(page.getByRole('button', { name: 'Start session' })).toBeDisabled();
+});
+
+test('a finished run lands on the results screen and survives a refresh', async ({ page }) => {
+  await createProfileAndOpenSetup(page);
+  await page.getByRole('button', { name: '3', exact: true }).click();
+  await page.getByRole('button', { name: 'Start session' }).click();
+
+  for (let round = 1; round <= 3; round++) {
+    await page.getByRole('button', { name: `Start round ${round}` }).click();
+    await page.getByRole('button', { name: 'Next round' }).click();
+  }
+
+  await expect(page).toHaveURL(/\/results$/);
+  await expect(page.getByRole('table', { name: 'Rounds' }).getByRole('row')).toHaveCount(4);
+
+  await page.reload();
+  await expect(page.getByRole('table', { name: 'Rounds' }).getByRole('row')).toHaveCount(4);
+});
+
+test('starting over records nothing', async ({ page }) => {
+  await createProfileAndOpenSetup(page);
+  await page.getByRole('button', { name: 'Start session' }).click();
+  await page.getByRole('button', { name: 'Start round 1' }).click();
+  await page.getByRole('button', { name: 'Next round' }).click();
+  await expect(page.getByRole('button', { name: 'Start round 2' })).toBeVisible();
+
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.getByRole('button', { name: 'Start over' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Set up a session' })).toBeVisible();
+  await page.getByRole('link', { name: 'Last run' }).click();
+  await expect(page.getByRole('main')).toContainText('No run on this device yet');
+});
+
+test('a second run replaces the first', async ({ page }) => {
+  // The premise of the whole revision: one slot, overwritten. Covered at unit
+  // level too, but this is the path a second person walking up actually takes.
+  await createProfileAndOpenSetup(page);
+  await page.getByRole('button', { name: '3', exact: true }).click();
+  await page.getByRole('button', { name: 'Start session' }).click();
+  for (let round = 1; round <= 3; round++) {
+    await page.getByRole('button', { name: `Start round ${round}` }).click();
+    await page.getByRole('button', { name: 'Next round' }).click();
+  }
+  await expect(page.getByRole('table', { name: 'Rounds' }).getByRole('row')).toHaveCount(4);
+
+  await page.getByRole('link', { name: 'Run another' }).click();
+  await page.getByRole('button', { name: '5', exact: true }).click();
+  await page.getByRole('button', { name: 'Start session' }).click();
+  for (let round = 1; round <= 5; round++) {
+    await page.getByRole('button', { name: `Start round ${round}` }).click();
+    await page.getByRole('button', { name: 'Next round' }).click();
+  }
+
+  // Five rows plus a header — the three-round run is gone, not appended to.
+  await expect(page.getByRole('table', { name: 'Rounds' }).getByRole('row')).toHaveCount(6);
+});
+
+test('a declined start over leaves the session running', async ({ page }) => {
+  await createProfileAndOpenSetup(page);
+  await page.getByRole('button', { name: 'Start session' }).click();
+  await page.getByRole('button', { name: 'Start round 1' }).click();
+
+  page.once('dialog', (dialog) => dialog.dismiss());
+  await page.getByRole('button', { name: 'Start over' }).click();
+
+  await expect(page.getByRole('list', { name: 'Round ticket' })).toBeVisible();
+});
+
+test('a run ended early is kept and marked as such', async ({ page }) => {
+  await createProfile(page);
+  await abandonSession(page);
 });

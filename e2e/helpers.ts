@@ -19,7 +19,7 @@ export async function runSession(page: Page, rounds: 3 | 5 | 10 = 3): Promise<vo
     await page.getByRole('button', { name: 'Next round' }).click();
   }
 
-  await expect(page.getByRole('heading', { name: 'Session complete' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Last run' })).toBeVisible();
 }
 
 /** Starts a session, runs one round, then ends it early with Escape. */
@@ -33,7 +33,8 @@ export async function abandonSession(page: Page): Promise<void> {
   await expect(page.getByRole('button', { name: 'Start round 2' })).toBeVisible();
   page.once('dialog', (dialog) => dialog.accept());
   await page.keyboard.press('Escape');
-  await expect(page.getByRole('heading', { name: 'Session ended early' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Last run' })).toBeVisible();
+  await expect(page.getByRole('main')).toContainText('Ended early');
 }
 
 /**

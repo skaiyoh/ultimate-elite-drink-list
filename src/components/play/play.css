@@ -31,8 +31,6 @@
 .rest[data-verdict='miss'] .rest__time { color: var(--color-miss); }
 .rest__average, .rest__units { color: var(--color-muted); margin: 0; }
 
-.complete__links { display: flex; gap: var(--space-3); margin: var(--space-3) 0 0; }
-
 /* The round label is demoted to a docket eyebrow: the clock is the hero, and
    two large headings on one screen means neither of them is. */
 .round-label {
@@ -46,6 +44,10 @@
 }
 
 .play-actions { display: flex; gap: var(--space-2); margin-top: var(--space-3); flex-wrap: wrap; }
+
+/* Start over sits beside the primary action but must never compete with it:
+   the common case is finishing the round, not scrapping the run. */
+.play-actions .is-quiet { margin-left: auto; }
 
 .docket-head {
   display: flex;

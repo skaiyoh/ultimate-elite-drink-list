@@ -212,4 +212,16 @@ describe('useSessionMachine', () => {
 
     vi.unstubAllGlobals();
   });
+
+  it('records nothing when a run is scrapped', async () => {
+    const { result } = await mountWithSession(3);
+
+    await act(async () => { result.current.startRound(); });
+    await act(async () => { result.current.startOver(); });
+
+    // The point of Start over: a scrapped run must not become the saved result.
+    expect(loadLastRun()).toBeNull();
+    expect(loadActiveSession()).toBeNull();
+    expect(result.current.state).toBeNull();
+  });
 });
