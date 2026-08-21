@@ -2,8 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { defaultSessionConfig } from '@/lib/session/config';
 import { createSession, sessionReducer, toRecord } from '@/lib/session/machine';
 import {
-  clearActiveSession, commitSession, loadActiveSession, loadHistory, loadPrefs,
-  loadSession, loadSessionIndex, saveActiveSession, savePrefs,
+  clearActiveSession, clearLastRun, commitSession, loadActiveSession, loadHistory, loadLastRun, loadPrefs,
+  loadSession, loadSessionIndex, saveActiveSession, saveLastRun, savePrefs,
 } from '@/lib/session/repository';
 import type { TicketLine } from '@/lib/session/types';
 import { STORAGE_KEYS } from '@/lib/storage/localStore';
@@ -155,5 +155,42 @@ describe('prefs', () => {
   it('returns null for corrupt prefs', () => {
     window.localStorage.setItem('ueddl:v1:profile:p1:prefs', '{"roundCount":"five"}');
     expect(loadPrefs('p1')).toBeNull();
+  });
+});
+
+describe('last run', () => {
+  const record = toRecord(createSession('s1', 'p1', config, 1_000));
+
+  it('is null before anything has been run', () => {
+    expect(loadLastRun()).toBeNull();
+  });
+
+  it('round-trips a finished run', () => {
+    saveLastRun(record);
+    expect(loadLastRun()).toEqual(record);
+  });
+
+  it('keeps only the most recent run', () => {
+    saveLastRun(record);
+    saveLastRun({ ...record, id: 's2', startedAt: 2_000 });
+
+    const loaded = loadLastRun();
+    expect(loaded?.id).toBe('s2');
+    expect(loaded?.startedAt).toBe(2_000);
+  });
+
+  it('reads a corrupt run as absent rather than throwing', () => {
+    window.localStorage.setItem(STORAGE_KEYS.lastRun, '{"id":"s1","rounds":"lots"}');
+    expect(loadLastRun()).toBeNull();
+  });
+
+  it('clears', () => {
+    saveLastRun(record);
+    clearLastRun();
+    expect(loadLastRun()).toBeNull();
+  });
+
+  it('reports a successful write', () => {
+    expect(saveLastRun(record)).toBe('ok');
   });
 });

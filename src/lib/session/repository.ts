@@ -77,3 +77,23 @@ export function savePrefs(profileId: string, config: SessionConfig): WriteOutcom
 export function loadPrefs(profileId: string): SessionConfig | null {
   return readValue(STORAGE_KEYS.prefs(profileId), parseSessionConfig);
 }
+
+/**
+ * The one finished run this device keeps, overwritten by the next.
+ *
+ * Deliberately a single key rather than an index: "only the most recent run
+ * matters" is the premise, so there is no second write to keep consistent and
+ * no orphan to roll back.
+ */
+export function saveLastRun(record: SessionRecord): WriteOutcome {
+  return writeValue(STORAGE_KEYS.lastRun, record);
+}
+
+/** Null for absent or unreadable — a corrupt run must not take down the screen. */
+export function loadLastRun(): SessionRecord | null {
+  return readValue(STORAGE_KEYS.lastRun, parseSessionRecord);
+}
+
+export function clearLastRun(): void {
+  removeValue(STORAGE_KEYS.lastRun);
+}

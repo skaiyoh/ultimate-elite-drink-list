@@ -6,6 +6,7 @@ export const STORAGE_KEYS = {
   activeProfile: `${PREFIX}:active-profile`,
   theme: `${PREFIX}:theme`,
   activeSession: `${PREFIX}:active-session`,
+  lastRun: `${PREFIX}:last-run`,
   prefs: (profileId: string) => `${PREFIX}:profile:${profileId}:prefs`,
   sessionIndex: (profileId: string) => `${PREFIX}:profile:${profileId}:session-index`,
   session: (sessionId: string) => `${PREFIX}:session:${sessionId}`,
