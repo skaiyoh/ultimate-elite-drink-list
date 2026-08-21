@@ -14,7 +14,6 @@ import {
 } from '@/lib/drinks/transfer';
 import type { CategoryId, DrinkListState } from '@/lib/drinks/types';
 import type { WriteOutcome } from '@/lib/storage/localStore';
-import '@/app/history/history.css';
 import '@/components/drinks/drinks.css';
 
 export default function DrinksPage() {

@@ -2,42 +2,6 @@
    three review screens read as one surface, so their type scale, rules and
    stat blocks live together rather than being restated per route. */
 
-.lede { color: var(--color-muted); margin-top: calc(var(--space-1) * -1); }
-
-.empty {
-  margin: 0 0 var(--space-3);
-  padding: var(--space-3);
-  border: 1px dashed var(--color-line);
-  border-radius: var(--radius);
-  color: var(--color-muted);
-}
-
-/* Stat blocks ---------------------------------------------------------- */
-
-.stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
-  gap: var(--space-2);
-  margin: 0 0 var(--space-4);
-}
-
-.stat dt {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-muted);
-}
-
-.stat__value {
-  margin: 0;
-  font-size: clamp(1.5rem, 1rem + 2vw, 2.25rem);
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums;
-}
-
-.stat__value[data-verdict='pass'] { color: var(--color-pass); }
-.stat__value[data-verdict='miss'] { color: var(--color-miss); }
-
 /* History list --------------------------------------------------------- */
 
 .sessions { list-style: none; margin: 0; padding: 0; }
