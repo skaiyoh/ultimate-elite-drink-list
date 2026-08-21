@@ -1,6 +1,13 @@
 import type { Category, Drink } from '@/lib/drinks/types';
 
-export const SEED_VERSION = 1;
+/**
+ * Bumped to 2 when the two either/or entries were split into one drink each:
+ * `seed:gimlet-rocks` (spec §15, open item 2) and `seed:classic-martini`,
+ * which the spec missed. One ticket line has to name one drink to make.
+ * mergeSeed only ever adds, so a device that already stored the combined entry
+ * keeps it alongside the two new ones and can 86 or delete it on /drinks.
+ */
+export const SEED_VERSION = 2;
 
 export const SEED_CATEGORIES = [
   { id: 'shot',     label: 'Shots',        maxQuantity: 8 },
@@ -55,7 +62,8 @@ export const SEED_DRINKS = [
   { id: 'seed:white-russian',                    name: 'White Russian',                           categoryId: 'cocktail',  enabled: true },
   { id: 'seed:sicilian-kiss',                    name: 'Sicilian Kiss',                           categoryId: 'cocktail',  enabled: true },
   { id: 'seed:negroni',                          name: 'Negroni',                                 categoryId: 'cocktail',  enabled: true },
-  { id: 'seed:gimlet-rocks',                     name: 'Gimlet, Rocks (Vodka or Gin)',            categoryId: 'cocktail',  enabled: true },
+  { id: 'seed:vodka-gimlet-rocks',               name: 'Vodka Gimlet, Rocks',                     categoryId: 'cocktail',  enabled: true },
+  { id: 'seed:gin-gimlet-rocks',                 name: 'Gin Gimlet, Rocks',                       categoryId: 'cocktail',  enabled: true },
   { id: 'seed:kamikaze',                         name: 'Kamikaze',                                categoryId: 'cocktail',  enabled: true },
   { id: 'seed:blue-kamikaze',                    name: 'Blue Kamikaze',                           categoryId: 'cocktail',  enabled: true },
   { id: 'seed:mai-tai',                          name: 'Mai Tai',                                 categoryId: 'cocktail',  enabled: true },
@@ -114,7 +122,8 @@ export const SEED_DRINKS = [
   { id: 'seed:lemon-drop-martini',               name: 'Lemon Drop Martini',                      categoryId: 'martini',   enabled: true },
   { id: 'seed:espresso-martini',                 name: 'Espresso Martini',                        categoryId: 'martini',   enabled: true },
   { id: 'seed:lychee-martini',                   name: 'Lychee Martini',                          categoryId: 'martini',   enabled: true },
-  { id: 'seed:classic-martini',                  name: 'Classic Martini (Gin or Vodka)',          categoryId: 'martini',   enabled: true },
+  { id: 'seed:gin-martini',                      name: 'Gin Martini',                             categoryId: 'martini',   enabled: true },
+  { id: 'seed:vodka-martini',                    name: 'Vodka Martini',                           categoryId: 'martini',   enabled: true },
 
   // Classic Cocktails - stirred and served up, so they order as martinis
   { id: 'seed:manhattan',                        name: 'Manhattan',                               categoryId: 'martini',   enabled: true },

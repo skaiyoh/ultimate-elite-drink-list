@@ -1,0 +1,40 @@
+/* src/components/drinks/drinks.css */
+.drinks-group { margin: 0 0 var(--space-4); }
+
+.drinks-table { width: 100%; border-collapse: collapse; }
+.drinks-table th[scope='col'] {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-muted);
+  text-align: left;
+  padding: var(--space-1);
+}
+
+.drink { border-bottom: 1px solid var(--color-line); }
+.drink td, .drink th { padding: var(--space-1); vertical-align: middle; }
+.drink[data-enabled='false'] .drink__field { opacity: 0.5; text-decoration: line-through; }
+
+.drink__name { font-weight: 400; width: 55%; }
+
+.drink__field {
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  padding: 4px 6px;
+}
+
+.drink__field:hover { border-color: var(--color-line); }
+.drink__field:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; border-color: transparent; }
+
+.drink__actions { display: flex; gap: var(--space-1); justify-content: flex-end; }
+.drink__delete { color: var(--color-miss); }
+
+.transfer { display: grid; gap: var(--space-2); margin: 0 0 var(--space-4); }
+.transfer__row { display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; }
+.transfer__error { margin: 0; color: var(--color-miss); }
+.transfer__diff { margin: 0; color: var(--color-muted); }
+.transfer__modes { display: flex; gap: var(--space-2); border: 0; padding: 0; margin: 0; }

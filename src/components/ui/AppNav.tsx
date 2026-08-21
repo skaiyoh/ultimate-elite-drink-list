@@ -15,6 +15,7 @@ const ITEMS: readonly NavItem[] = [
   { href: '/setup', label: 'Drill' },
   { href: '/history', label: 'History', owns: ['/summary'] },
   { href: '/stats', label: 'Stats' },
+  { href: '/drinks', label: 'Drinks' },
 ];
 
 function isCurrent(item: NavItem, pathname: string): boolean {
