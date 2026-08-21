@@ -686,8 +686,12 @@ label naming what it measures; the round verdict announces once on entry to
 
 ## 13. Performance budget
 
-**App JS < 40KB gzipped on top of the framework floor**, **< 30KB CSS**,
-LCP < 2.5s, CLS < 0.1, INP < 200ms.
+**< 215KB JS gzipped total**, **< 30KB CSS**, LCP < 2.5s, CLS < 0.1,
+INP < 200ms. LCP and CLS are asserted per route from the browser's own
+`PerformanceObserver` rather than via Lighthouse, which would add a heavy
+dependency to a project whose entire performance story is "ship no libraries"
+to report the same two numbers. INP is not asserted: it needs real interaction
+and is too noisy locally to be anything but a flaky test that gets ignored.
 
 **Corrected a third time, and this correction changes what is being measured.**
 A total-JS budget turned out to be a measurement of Next.js, not of this
@@ -701,13 +705,21 @@ Measured on the finished application: **203.2KB** on the heaviest route
 gzipped.** Every route lands between 198 and 204KB, because essentially all of
 it is framework.
 
-So the budget is now expressed as the part that can actually be governed: what
-this codebase adds on top of whatever framework it sits on, capped at 40KB
-gzipped — roughly seven times current usage, which is room to grow without
-letting a charting library in unnoticed. `e2e/budget.spec.ts` enforces it by
-differencing the two routes, and separately asserts the runtime dependency list
-is still exactly `next`, `react`, `react-dom`, `zod`, since a 40KB library
-arriving on one route is the failure a byte total would miss.
+`e2e/budget.spec.ts` enforces a **215KB total ceiling** on the heaviest route —
+about 12KB of headroom, enough that ordinary feature work passes and a charting
+or date library does not — plus a **100KB floor**, because the failure most
+worth catching in a byte measurement is one that silently captured nothing. It
+also asserts the runtime dependency list is still exactly `next`, `react`,
+`react-dom`, `zod`, which is the check that actually defends §13: a 40KB
+library landing on one route barely moves a total.
+
+Differencing the app against a measured framework floor was tried first and
+abandoned. Inside the test runner that floor read anywhere from 8.5KB to
+197.5KB depending on Chromium's cache and on whether `load` fired before the
+chunks arrived, so the "app size" it produced was an artifact. Waiting on
+rendered, hydrated content and disabling the network cache fixed the
+measurement; differencing against a second route was simply not worth its
+fragility once a total ceiling does the same job.
 
 CSS measures **4.2–4.8KB gzipped** per route against the 30KB budget.
 
@@ -779,14 +791,35 @@ Phased so each phase is independently verifiable:
 1. **Category placement of the shaken sours** — Midori Sour, Amaretto Sour and
    Tom Collins sit under Well Drinks but are shaken/built rather than
    two-ingredient pours. Quantities are unaffected (both cap at 2); it only
-   changes what a "Well Drinks" filtered drill feels like. Owner's call.
+   changes what a "Well Drinks" filtered drill feels like.
+   **Resolved by feature, not by decision:** `/drinks` (Plan 3) recategorises
+   any drink in two clicks and the change persists per device, so this is now a
+   preference each bar sets rather than something the seed has to get right.
+   Left where they are, because moving them would be one opinion imposed on
+   everyone rather than the default that matches the list as supplied.
 2. **`Vodka or Gin Gimlet`** names two different builds in a single ticket line,
-   which is ambiguous mid-round. Splitting it into `Vodka Gimlet` and
-   `Gin Gimlet` removes the ambiguity and deepens the cocktail pool by one.
+   which is ambiguous mid-round.
+   **Resolved.** Split into `Vodka Gimlet, Rocks` and `Gin Gimlet, Rocks`.
+   Writing this as an invariant — no seed name may contain " or " — caught a
+   second instance this list had missed, `Classic Martini (Gin or Vodka)`, now
+   `Gin Martini` and `Vodka Martini`. `SEED_VERSION` went to 2; the cocktail and
+   martini pools each gained a drink. Guarded by a test in
+   `src/lib/drinks/schema.test.ts`, so it cannot come back.
 3. **Exact band numbers** — Warm-up 8–11 / Standard 12–16 / Rush 18–24 are
    starting values to calibrate against actual round times.
+   **Still open, and only real drills can close it.** Nothing in the codebase
+   can supply the evidence; the numbers are a single constants table in
+   `lib/session/config.ts` and `/stats` now reports seconds-per-drink, which is
+   the measurement to calibrate them against.
 4. **Font selection** — two specific families to be chosen at implementation
    against the condensed-display + tabular-figures requirement.
+   **Resolved.** **Archivo Narrow** for drink names and headings: a condensed
+   grotesque with enough weight to read as a printed docket, where Oswald reads
+   as signage and Barlow Condensed as neutral. **IBM Plex Sans** for the clock,
+   quantities and body: true tabular figures, and squared instrument-like
+   terminals that suit a timer, without Inter's ubiquity. Loaded through
+   `next/font/google`, self-hosted at build time, `display: swap`; only Plex is
+   preloaded, since it sets every string a round is actually read from.
 
 ---
 
