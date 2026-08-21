@@ -11,20 +11,20 @@ const lines: TicketLine[] = [
 
 describe('Ticket', () => {
   it('lists exactly the dealt drinks', () => {
-    render(<Ticket lines={lines} />);
+    render(<Ticket lines={lines} totalUnits={12} />);
     expect(screen.getByRole('list', { name: 'Round ticket' })).toBeInTheDocument();
     expect(screen.getAllByRole('listitem')).toHaveLength(2);
   });
 
   it('shows each drink with its quantity', () => {
-    render(<Ticket lines={lines} />);
+    render(<Ticket lines={lines} totalUnits={12} />);
     expect(screen.getByText('Green Tea Shot')).toBeInTheDocument();
     expect(screen.getByText('×4')).toBeInTheDocument();
     expect(screen.getByText('×1')).toBeInTheDocument();
   });
 
   it('announces quantities to screen readers without relying on the × glyph', () => {
-    render(<Ticket lines={lines} />);
+    render(<Ticket lines={lines} totalUnits={12} />);
     expect(screen.getByLabelText('Green Tea Shot, 4')).toBeInTheDocument();
   });
 });

@@ -58,7 +58,7 @@
   font-size: var(--text-drink);
 }
 
-.session__link:hover { color: var(--color-accent); }
+.session__link:hover { color: var(--color-accent-ink); }
 .session__link:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
 
 .session__meta { grid-column: 1; margin: 0; color: var(--color-muted); font-size: 0.85rem; }

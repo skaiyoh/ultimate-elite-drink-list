@@ -7,17 +7,22 @@
   text-align: center;
 }
 
-.nav {
+.app-header {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: var(--space-2);
-  align-items: baseline;
+  flex-wrap: wrap;
   max-width: 60rem;
   margin: 0 auto;
-  padding: var(--space-2) var(--space-2) 0;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--color-line);
 }
+
+/* Alone in the header during a round, when the nav removes itself. */
+.app-header > .theme:only-child { margin-left: auto; }
+
+.nav { display: flex; gap: var(--space-2); align-items: baseline; flex-wrap: wrap; }
 
 .nav__link {
   color: var(--color-muted);
@@ -28,4 +33,51 @@
 
 .nav__link:hover { color: var(--color-ink-on-ground); }
 .nav__link:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
-.nav__link[aria-current='page'] { color: var(--color-accent); border-bottom-color: var(--color-accent); }
+.nav__link[aria-current='page'] { color: var(--color-accent-ink); border-bottom-color: var(--color-accent); }
+
+/* Segmented theme control: one rule around three options, hairline between. */
+.theme { display: inline-flex; border: 1px solid var(--color-line); border-radius: var(--radius); }
+
+.theme__option {
+  border: 0;
+  border-radius: 0;
+  padding: 0.5em 0.7em;
+  font-size: var(--text-eyebrow);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-muted);
+}
+
+.theme__option:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+.theme__option:last-child { border-radius: 0 var(--radius) var(--radius) 0; }
+.theme__option + .theme__option { border-left: 1px solid var(--color-line); }
+.theme__option:focus-visible { outline-offset: -2px; }
+
+/* The docket ------------------------------------------------------------
+ *
+ * The one device the whole app is built on (spec §10): a paper ticket on a
+ * dark back-bar ground. It stays light in both themes — paper does not invert —
+ * so it always carries --color-ink rather than --color-ink-on-ground.
+ *
+ * The notched top edge is the signature: this is a ticket torn off the pad,
+ * not a card. It is a mask rather than an image so it costs nothing, tracks the
+ * docket colour in both themes, and scales with the element.
+ */
+.docket {
+  --perf: 7px;
+  background: var(--color-docket);
+  color: var(--color-ink);
+  border-radius: 0 0 var(--radius) var(--radius);
+  padding: calc(var(--space-3) + var(--perf)) var(--space-3) var(--space-3);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.12), 0 14px 28px -18px rgb(0 0 0 / 0.5);
+  mask-image: radial-gradient(circle var(--perf) at var(--perf) 0, transparent 98%, #000 100%);
+  mask-size: calc(var(--perf) * 2) 100%;
+  mask-repeat: repeat-x;
+  mask-position: top left;
+}
+
+/* Muted text on paper needs its own value: --color-muted is tuned for the
+   ground, and in dark mode it is a light grey that vanishes on the docket. */
+.docket .muted { color: var(--color-muted-on-docket); }
+.docket hr { border: 0; border-top: 1px solid var(--color-line-on-docket); margin: var(--space-2) 0; }

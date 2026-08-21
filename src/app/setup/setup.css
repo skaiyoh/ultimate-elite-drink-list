@@ -1,0 +1,74 @@
+/* src/app/setup/setup.css
+ *
+ * The setup screen is the ticket you are about to run, so it sits on a docket
+ * like the round itself. Everything inside is on paper, which means the paper
+ * ink colours — not the ground ones — apply.
+ */
+
+.lede { color: var(--color-muted); margin: calc(var(--space-1) * -1) 0 var(--space-3); }
+
+.setup { display: grid; gap: var(--space-3); }
+
+.setup__field {
+  display: grid;
+  gap: var(--space-1);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-line-on-docket);
+}
+
+.setup__field:last-child { padding-bottom: 0; border-bottom: 0; }
+
+/* Legends and labels sit on paper here, so they need the paper muted value —
+   the ground one is a light grey that disappears against the docket in dark. */
+.setup__field legend,
+.setup__field label { color: var(--color-muted-on-docket); }
+
+.setup__options { display: flex; gap: var(--space-1); flex-wrap: wrap; align-items: center; }
+
+.setup__field button {
+  color: var(--color-ink);
+  border-color: var(--color-line-on-docket);
+}
+
+.setup__field button:hover:not(:disabled) { color: var(--color-accent-on-docket); border-color: var(--color-accent); }
+.setup__field button[aria-pressed='true'] { color: var(--color-on-accent); }
+
+.setup__custom {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
+}
+
+.setup__custom input { width: 4.5rem; color: var(--color-ink); border-color: var(--color-line-on-docket); }
+
+.setup__stepper { gap: var(--space-2); }
+
+.setup__stepper output {
+  font-size: var(--text-h2);
+  font-variant-numeric: tabular-nums;
+  min-width: 4ch;
+  text-align: center;
+}
+
+.setup__stepper button { min-width: 2.75rem; font-size: 1.1rem; }
+
+.setup__check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.35em 0.7em;
+  border: 1px solid var(--color-line-on-docket);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-out-expo);
+}
+
+.setup__check:hover { border-color: var(--color-accent); }
+.setup__check:has(:checked) { border-color: var(--color-accent); color: var(--color-ink); }
+
+.setup__issue { margin: var(--space-3) 0 0; }
+.setup__issue.is-blocking { color: var(--color-miss); }
+.setup__issue.is-warning { color: var(--color-muted); }
+
+.setup__go { margin: var(--space-3) 0 0; }

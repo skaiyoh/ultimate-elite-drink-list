@@ -1,4 +1,6 @@
 @import './tokens.css';
+@import './typography.css';
+@import './controls.css';
 
 *, *::before, *::after { box-sizing: border-box; }
 
@@ -6,9 +8,8 @@ body {
   margin: 0;
   background: var(--color-ground);
   color: var(--color-ink-on-ground);
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
   font-size: var(--text-body);
-  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
 }
 
 main { max-width: 60rem; margin: 0 auto; padding: var(--space-4) var(--space-2); }
@@ -27,9 +28,22 @@ main { max-width: 60rem; margin: 0 auto; padding: var(--space-4) var(--space-2);
   border: 0;
 }
 
+/* Spec §10: reduced motion drops to opacity-only. Movement is removed, but a
+   fade survives — it still marks that something changed, without travel. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
+    animation-name: none !important;
+    transition-property: opacity, color, background-color, border-color !important;
+    transition-duration: var(--duration-fast) !important;
+  }
+
+  /* The blanket rule above removes every animation; these two put back an
+     opacity-only version, which is what spec §10 asks for. Travel is gone,
+     the fact that something changed is not. */
+  .ticket-docket, .rest {
+    animation-name: reduced-fade-in !important;
+    animation-duration: 200ms !important;
   }
 }
+
+@keyframes reduced-fade-in { from { opacity: 0; } to { opacity: 1; } }

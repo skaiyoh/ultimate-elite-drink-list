@@ -90,10 +90,12 @@ export default function PlayPage() {
     return (
       <main>
         <StorageWarning warning={storageWarning} />
-        <h1>Round {rounds.length + 1} of {config.roundCount}</h1>
+        <h1 className="round-label">Next up · round {rounds.length + 1} of {config.roundCount}</h1>
         {lastRound && <RestCard round={lastRound} goalMs={config.goalMs} averageMs={averageMs} />}
-        <button onClick={machine.startRound}>Start round {rounds.length + 1}</button>
-        <p>Space starts the round. The clock is stopped until you do.</p>
+        <p className="play-actions">
+          <button className="is-primary" onClick={machine.startRound}>Start round {rounds.length + 1}</button>
+        </p>
+        <p className="hint">Space starts the round. The clock is stopped until you do.</p>
       </main>
     );
   }
@@ -104,14 +106,15 @@ export default function PlayPage() {
   return (
     <main>
       <StorageWarning warning={storageWarning} />
-      <h1>Round {current.index + 1} of {config.roundCount}</h1>
+      <h1 className="round-label">Round {current.index + 1} of {config.roundCount}</h1>
       <RoundClock elapsedMs={elapsedMs} goalMs={config.goalMs} paused={status === 'paused'} />
-      <Ticket lines={current.ticket} />
-      <p>{current.totalUnits} drinks</p>
-      <button onClick={machine.advance}>Next round</button>
-      <button onClick={status === 'paused' ? machine.resume : machine.pause}>
-        {status === 'paused' ? 'Resume' : 'Pause'}
-      </button>
+      <Ticket lines={current.ticket} totalUnits={current.totalUnits} />
+      <p className="play-actions">
+        <button className="is-primary" onClick={machine.advance}>Next round</button>
+        <button onClick={status === 'paused' ? machine.resume : machine.pause}>
+          {status === 'paused' ? 'Resume' : 'Pause'}
+        </button>
+      </p>
     </main>
   );
 }

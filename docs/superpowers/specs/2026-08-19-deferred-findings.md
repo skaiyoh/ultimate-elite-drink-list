@@ -1,49 +1,103 @@
-# Deferred findings — carried out of the MVP drill loop
+# Deferred findings
 
-Every item below was found by review, judged not to block merge, and deliberately left.
-They are inputs to Plans 2-4, not a backlog of unknown quality. Extracted from the SDD
-ledger before its scratch workspace was deleted; the git history is the fuller record.
+Findings that review judged not to block a merge and deliberately left. They
+are inputs to later work, not a backlog of unknown quality.
 
-## Ruled on during execution
+**Two provenance caveats.** The MVP-era items below were extracted by grep from
+the SDD ledger before its scratch workspace was deleted, and many are truncated
+mid-sentence; git history is the fuller record. Items added after the MVP are
+written out in full.
 
-- `Ruling: vitest thresholds are global, not per-file — amended Task 9's stated expectation rather than adding perFile:true. Why: a per-file gate would fail on thin wrappers that later tasks cover, costing fix rounds on a non-problem. Cost if wrong: aggregate coverage could mask one badly-tested module; the final review still sees the whole diff.`
-- `Ruling: Task 14's StorageBanner test switches from vi.spyOn to vi.mock+importOriginal. Why: spying on an ES module export fails to redefine in many setups, so the test would fail for a reason unrelated to the code. Cost if wrong: none — vi.mock is strictly more reliable here.`
-- `Ruling: work proceeds on branch feat/mvp-drill-loop in place rather than a worktree. Why: user chose it explicitly when asked. Cost if wrong: none; main is untouched either way.`
-- deviations (a) vitest.setup explicit beforeEach import, (b) eslint native subpath
-- Important #2 (bundle budget) is a PLAN defect, not an implementation defect, so it does
-- rename vitest.config.ts -> .mts, overriding the brief's literal filename. Why: the plan's
-- the out-of-brief vitest.config.mts change is ACCEPTED. Why: without it no test in the
-- this does NOT consume a fix round. Why: a round is one fix attempt plus one scoped
-- WriteOutcome gains 'invalid' rather than folding serialization failure into 'unavailable'
-for. Ruling: PARK. Cosmetic, and not worth a dispatch during a speedrun. Fix in the final wave.
-- APPROVED extracting StorageWarning, which also resolves the reviewer's separate Minor about
-- derive storageWarning as Exclude<WriteOutcome, 'ok'> | null rather than restate it. Not
-pre-existing, and reported-not-fixed by the implementer as out of scope. Ruling: PARK for Plan 4,
+---
 
-## Parked findings
+## Resolved since the MVP
 
-- Task 1: minor (deferred): benign Vite CJS/ESM config-loader deprecation notice on every
-- Task 1: minor (deferred): none outstanding — the eslint-comment minor is riding along with the
-- Task 1: minor (deferred): import.meta.dirname in vitest.config.mts:8 introduces an undocumented
-- Task 1: minor (deferred) -> SUPERSEDED, being fixed in Task 2 fix round 1 (engines + .nvmrc).
-- Task 3: minor (deferred): persistent is a one-way latch with no recovery within a session —
-- Task 3: minor (deferred): quota detection is an error.name string match against two known values;
-- Task 3: minor (deferred): localStore.test.ts has no reset hook for module-level memory/persistent,
-- Task 4: minor (deferred) [HIGHEST PRIORITY OF THE PARKED MINORS]: the "never overwrites a user
-- Task 4: minor (deferred): repository.test.ts:57 hardcodes 'ueddl:v1:drinks' instead of importing
-- Task 5: minor (deferred): report claimed 8 exported functions; there are 7 (parseProfiles is not
-- Task 5: minor (deferred) [latent data loss, worth a real decision at final review]: neither
-- Task 6: minor (deferred): no test for selectDrinks with pool exactly 7 AND empty previous (the
-- Task 6: minor (deferred): stray leading blank line in rng.ts:1, an artifact of the brief's own
-- DEFERRED (real, worth attention at final review): commitSession performs TWO non-atomic
-- DEFERRED (design refinement, NOT a bug — escalate to the user): the reducer trusts caller-supplied
-- STILL DEFERRED (all recorded above with reasoning): Task 14, Task 15, per-task reviews for Tasks
-- DEFERRED (pre-existing, flagged for visibility): selectDrinks still throws when the pool drops
-- Task 7-13: minor (deferred): RoundClock/RestCard had no tests -> NOW FIXED in this round.
-- Task 7-13: minor (deferred): useHydrated is unused; three sites hand-roll the identical idiom
-- Task 7-13: minor (deferred): the completion screen does not distinguish a finished session from an
-- Task 7-13: minor (deferred): startRound does not guard selectDrinks' documented throw. Unreachable
-- Task 7-13: minor (deferred): session/schema.ts keeps the redundant Zod-3-era tuple cast.
-- Task 14: minor (deferred): StorageBanner only re-evaluates isPersistent() on its own render, so a
-- Task 14: minor (deferred): layout banner does not reactively update if storage first fails
-- Task 14: minor (deferred): storageWarning union was hand-copied -> NOW FIXED in this round.
+- **`commitSession` performed two non-atomic writes.** A session record written
+  without its index entry was unreachable from history forever, and the caller
+  was told `'ok'`, so it cleared the crash-recovery backup holding the only
+  other copy. The record is now rolled back when the index write fails, turning
+  silent data loss into a reported failure. `session/repository.ts`.
+- **`useWakeLock` was effectively untested** at 27% line coverage — jsdom ships
+  no Wake Lock API, so every path past the feature check was unreached. Now
+  covered, including the race where a lock is granted after the round has ended,
+  which would otherwise hold a user's screen awake indefinitely.
+- **Sessions were written but never read back.** Plan 2 added `/history`,
+  `/summary/[sessionId]` and `/stats`.
+- **Two seed drinks named two builds in one ticket line** (spec §15 item 2).
+  Split, and the invariant is now a test.
+- **Font selection** (spec §15 item 4). Archivo Narrow + IBM Plex Sans.
+- **Brass was unreadable as text.** `--color-accent` is tuned as a fill with
+  dark text on it; used as text it measured 3.29:1 on the light ground and
+  failed on the light docket in dark mode. Split into `--color-accent-ink` and
+  `--color-accent-on-docket`.
+- **Undersized tap targets.** Nav links and the theme switch were 18px tall
+  against WCAG 2.2's 24px minimum.
+
+---
+
+## Still deferred
+
+### Storage boundary
+
+- `persistent` in `localStore` is a one-way latch with no recovery within a
+  session — once any access throws, the app stays in memory mode until reload.
+- Quota detection is an `error.name` string match against two known values;
+  a browser reporting a third name degrades to `'unavailable'` rather than
+  `'quota'`, which shows the wrong message.
+- `localStore.test.ts` has no reset hook for the module-level `memory` map and
+  `persistent` flag, so tests in that file are order-coupled.
+- `StorageBanner` only re-evaluates `isPersistent()` on its own render, and the
+  layout banner does not reactively update if storage starts failing mid-session.
+
+### Drinks and the generator
+
+- **(Highest priority of the MVP-era minors, and truncated in extraction.)**
+  Task 4's finding about the "never overwrites a user…" path in `mergeSeed`.
+  The behaviour is tested; the finding concerned a gap in how, not whether.
+- `repository.test.ts:57` hardcodes `'ueddl:v1:drinks'` instead of importing
+  `STORAGE_KEYS`.
+- No test for `selectDrinks` with a pool of exactly 7 *and* an empty previous
+  round — the boundary where two-tier freshness has nothing stale to draw on.
+- `selectDrinks` still throws when the pool drops below 7, and `startRound`
+  does not guard that documented throw. Unreachable through the UI because the
+  setup guard blocks Start, but it is a throw with no catch behind it.
+- Stray leading blank line in `rng.ts:1`.
+
+### Session machine
+
+- The reducer trusts caller-supplied timestamps. Flagged as a design
+  refinement rather than a bug, and worth a decision rather than a patch.
+- `session/schema.ts:7` keeps a redundant Zod-3-era tuple cast on
+  `difficultyIds`; Zod 4 infers this without help, as `drinks/schema.ts`
+  already does.
+
+### Components
+
+- `useHydrated` is unused. Three sites hand-roll the identical
+  load-once-after-mount idiom instead, each with its own eslint-disable.
+
+---
+
+## Added by Plans 2–4
+
+- **`/summary/[sessionId]` builds as a dynamic route** (`ƒ`), not static: Next
+  cannot enumerate session ids at build time. It server-renders only the client
+  shell and no session data touches a server, but it does mean one route is not
+  statically served, against spec §2's "statically served on Vercel". A query
+  parameter would keep it static at the cost of the spec's stated URL shape.
+- **Visual regression baselines are platform-specific**
+  (`…-chromium-darwin.png`). Run on another OS they differ on font
+  rasterisation alone. Regenerate rather than debug, and expect to do so if CI
+  is ever added on Linux.
+- **INP is not asserted.** LCP and CLS are measured per route from the
+  browser's own observers; INP needs real interaction and was too noisy locally
+  to be anything but a flaky test that gets ignored.
+- **Difficulty bands are still uncalibrated** (spec §15 item 3). Only real
+  drills can close it. `/stats` now reports seconds-per-drink, which is the
+  measurement to calibrate against.
+- **The `/drinks` table has no search or filter.** Ninety-odd rows are grouped
+  by category, which makes them navigable, but finding one drink by name means
+  scanning. Deliberately not invented, since the spec does not ask for it.
+- **Deleting a profile orphans its sessions.** The records and the profile's
+  session index stay in storage, unreachable. The confirmation says so; nothing
+  reclaims the space.

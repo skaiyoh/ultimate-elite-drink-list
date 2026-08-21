@@ -14,9 +14,11 @@ test('adds a drink and keeps it across a reload', async ({ page }) => {
   await page.getByLabel('Category', { exact: true }).selectOption('well');
   await page.getByRole('button', { name: 'Add drink' }).click();
 
-  await expect(page.getByRole('table', { name: 'Well Drinks' })).toContainText('House Punch');
+  // Asserted on the row's rename field: a drink's name is an input value, not
+  // table text, so toContainText would never see it.
+  await expect(page.getByLabel('Rename House Punch')).toBeVisible();
   await page.reload();
-  await expect(page.getByRole('table', { name: 'Well Drinks' })).toContainText('House Punch');
+  await expect(page.getByLabel('Rename House Punch')).toBeVisible();
 });
 
 test('renames a drink in place', async ({ page }) => {
@@ -79,9 +81,9 @@ test('imports a file after previewing what it would change', async ({ page }) =>
   await expect(page.getByText(/added · .* changed · .* removed/)).toBeVisible();
   await page.getByRole('button', { name: 'Apply import' }).click();
 
-  await expect(page.getByRole('table', { name: 'Well Drinks' })).toContainText('Imported Punch');
+  await expect(page.getByLabel('Rename Imported Punch')).toBeVisible();
   await page.reload();
-  await expect(page.getByRole('table', { name: 'Well Drinks' })).toContainText('Imported Punch');
+  await expect(page.getByLabel('Rename Imported Punch')).toBeVisible();
   await expect(page.getByLabel('Rename Moscow Mule')).toHaveCount(0);
 });
 
@@ -108,7 +110,9 @@ test('an 86d drink is never dealt', async ({ page }) => {
   }
   await expect(page.getByRole('heading', { name: /^Cocktails · 7 of / })).toBeVisible();
 
-  const stillOn = (await cocktails.getByRole('button', { name: /^86 / }).allTextContents())
+  // The name is on the button's aria-label, not in its visible text.
+  const stillOn = (await cocktails.getByRole('button', { name: /^86 / })
+    .evaluateAll((buttons) => buttons.map((b) => b.getAttribute('aria-label') ?? '')))
     .map((label) => label.replace(/^86 /, ''))
     .sort();
   expect(stillOn).toHaveLength(7);
