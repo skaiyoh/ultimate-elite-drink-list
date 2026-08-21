@@ -39,3 +39,8 @@
 
 .stat__value[data-verdict='pass'] { color: var(--color-pass); }
 .stat__value[data-verdict='miss'] { color: var(--color-miss); }
+
+/* Positions the verdict word .eyebrow already supplies the type for: its own
+   line below the value, not jammed against it. Colour comes from inheriting
+   .stat__value[data-verdict]'s pass/miss colour — this rule is layout only. */
+.stat__verdict { display: block; margin-top: 0.15em; }

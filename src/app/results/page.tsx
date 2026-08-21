@@ -25,6 +25,13 @@ function Breakdown({ run }: { run: SessionRecord }) {
           <dt>Average</dt>
           <dd className="stat__value" data-verdict={average === null ? undefined : verdict(average, config.goalMs)}>
             {average === null ? '—' : formatDuration(average)}
+            {/* Named, not just coloured: colour alone is not an accessible
+                signal (WCAG 1.4.1). Subordinate to the duration above it —
+                .eyebrow is the small-caps type this codebase already uses
+                for labels, not a second headline. */}
+            {average !== null && (
+              <span className="stat__verdict eyebrow"> {verdict(average, config.goalMs) === 'pass' ? 'Pass' : 'Miss'}</span>
+            )}
           </dd>
         </div>
         <div className="stat">

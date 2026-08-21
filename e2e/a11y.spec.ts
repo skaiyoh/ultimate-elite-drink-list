@@ -1,7 +1,7 @@
 // e2e/a11y.spec.ts — axe on every route, in both themes (spec §12).
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { createProfile } from './helpers';
+import { createProfile, seedLastRun } from './helpers';
 
 type Theme = 'light' | 'dark';
 
@@ -62,6 +62,10 @@ const routes: readonly { readonly name: string; readonly open: (page: Page) => P
   {
     name: 'results',
     open: async (page) => {
+      // Seeded so the audit covers the populated Breakdown view — the
+      // .rounds table, the chart, the ticket disclosures — not just the
+      // empty state every other unseeded route would fall through to.
+      await seedLastRun(page);
       await page.getByRole('link', { name: 'Last run' }).click();
       await expect(page.getByRole('heading', { name: 'Last run' })).toBeVisible();
     },
