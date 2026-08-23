@@ -23,6 +23,12 @@
 > loop, generation, timing, the drink list and its transfer format, the visual
 > direction, error handling, accessibility, and the performance budget.
 
+> **Also changed since, and not part of that revision:** the on/off control on
+> `/drinks` was relabelled from **86** to **Exclude / Include** (2026-08-23).
+> Behaviour is unchanged — the drink stays on the list and is never dealt — and
+> `Drink.enabled` is still the field behind it. The trade's word survives in the
+> code comments, where it explains the domain rather than gatekeeping a toggle.
+
 ---
 
 ## 1. What this is
@@ -138,7 +144,7 @@ export interface Drink {
   readonly id: DrinkId;
   readonly name: string;
   readonly categoryId: CategoryId;
-  /** 86 a drink without deleting it — seasonal, off-menu, not stocked. */
+  /** Exclude a drink from drills without deleting it — seasonal, off-menu, not stocked. */
   readonly enabled: boolean;
 }
 
@@ -493,7 +499,7 @@ on `resting`/`complete`. Feature-detected; failure is silent and non-blocking.
 | `/summary/[sessionId]` | Full breakdown of one session |
 | `/history` | Past sessions for the active profile |
 | `/stats` | Cross-session analytics |
-| `/drinks` | Manage drinks (add / rename / recategorize / 86 / delete), export, import — categories are fixed in code |
+| `/drinks` | Manage drinks (add / rename / recategorize / exclude / delete), export, import — categories are fixed in code |
 
 ### Setup
 

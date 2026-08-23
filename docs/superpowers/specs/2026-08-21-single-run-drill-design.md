@@ -290,7 +290,7 @@ Called out because the cut is large and the core is untouched:
 - round generation, the two-tier freshness rule, and the banded quantities (§6)
 - all timing, pause semantics, and `Date.now()`-delta derivation (§7)
 - the keyboard shortcuts (§7) — `Space`, `P`, `Esc`
-- the drink list, seed merge, 86, export and import (§3.1, §5)
+- the drink list, seed merge, excluding a drink, export and import (§3.1, §5)
 - crash recovery restoring an interrupted session at rest
 - the palette, typography, the docket, motion, and both themes (§10)
 - error handling (§11), the accessibility contract (§12), the budget (§13)
