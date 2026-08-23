@@ -8,6 +8,11 @@ the SDD ledger before its scratch workspace was deleted, and many are truncated
 mid-sentence; git history is the fuller record. Items added after the MVP are
 written out in full.
 
+**Last verified 2026-08-23** against the tree at `08b1006`. Every item under
+"Still deferred" and below was re-checked against the code on that date, and
+the anchors are current. One item had already been fixed in passing and has
+moved up to Resolved.
+
 ---
 
 ## Resolved since the MVP
@@ -39,6 +44,12 @@ written out in full.
   could not enumerate session ids at build time, against spec §2's
   "statically served on Vercel". The single-run revision deletes the route
   along with `/history` and `/stats`; every route is static again.
+- **A drinks test hardcoded a storage key.** `repository.test.ts` spelled
+  `'ueddl:v1:drinks'` as a literal, so renaming the key would have left the
+  test passing against a key the app no longer writes. It now imports
+  `STORAGE_KEYS` and asserts through `STORAGE_KEYS.drinks`
+  (`drinks/repository.test.ts:7,58`). Fixed in passing rather than by a
+  dedicated commit, which is why it sat here until the 2026-08-23 sweep.
 - **Deleting a profile orphaned its sessions.** The records and the profile's
   session index stayed in storage, unreachable, with nothing reclaiming the
   space. The single-run revision deletes profiles and the session index
@@ -52,26 +63,30 @@ written out in full.
 
 - `persistent` in `localStore` is a one-way latch with no recovery within a
   session — once any access throws, the app stays in memory mode until reload.
+  Declared at `storage/localStore.ts:7` and set false at `:18`, `:65` and
+  `:76` — never set back.
 - Quota detection is an `error.name` string match against two known values;
   a browser reporting a third name degrades to `'unavailable'` rather than
   `'quota'`, which shows the wrong message.
 - `localStore.test.ts` has no reset hook for the module-level `memory` map and
-  `persistent` flag, so tests in that file are order-coupled.
-- `StorageBanner` only re-evaluates `isPersistent()` on its own render, and the
-  layout banner does not reactively update if storage starts failing mid-session.
+  `persistent` flag, so tests in that file are order-coupled. The `afterEach`
+  at `localStore.test.ts:6` unstubs globals only; it does not touch either.
+- `StorageBanner` only re-evaluates `isPersistent()` on its own render
+  (`components/ui/StorageBanner.tsx:13`), and the layout banner does not
+  reactively update if storage starts failing mid-session.
 
 ### Drinks and the generator
 
 - **(Highest priority of the MVP-era minors, and truncated in extraction.)**
   Task 4's finding about the "never overwrites a user…" path in `mergeSeed`.
   The behaviour is tested; the finding concerned a gap in how, not whether.
-- `repository.test.ts:57` hardcodes `'ueddl:v1:drinks'` instead of importing
-  `STORAGE_KEYS`.
 - No test for `selectDrinks` with a pool of exactly 7 *and* an empty previous
   round — the boundary where two-tier freshness has nothing stale to draw on.
-- `selectDrinks` still throws when the pool drops below 7, and `startRound`
-  does not guard that documented throw. Unreachable through the UI because the
-  setup guard blocks Start, but it is a throw with no catch behind it.
+  `generator.test.ts` covers pools of 31, 13 and 14; 7 is the untested edge.
+- `selectDrinks` still throws when the pool drops below 7
+  (`session/generator.ts:17`), and `startRound` does not guard that documented
+  throw. Unreachable through the UI because the setup guard blocks Start, but
+  it is a throw with no catch behind it.
 - Stray leading blank line in `rng.ts:1`.
 
 ### Session machine
@@ -84,10 +99,14 @@ written out in full.
 
 ### Components
 
-- `useHydrated` is not unused — `StorageBanner.tsx` imports and calls it. Four
+- `useHydrated` is not unused — `StorageBanner.tsx` imports and calls it. Five
   other sites hand-roll the identical load-once-after-mount idiom instead of
   reusing it, each with its own eslint-disable: `src/hooks/useSessionMachine.ts`,
-  `src/app/page.tsx`, `src/app/drinks/page.tsx` and `src/app/results/page.tsx`.
+  `src/app/page.tsx`, `src/app/drinks/page.tsx`, `src/app/results/page.tsx` and
+  `src/components/ui/ThemeToggle.tsx`. The last was found by the single-run
+  revision's final review; the other four are MVP-era. Counted by
+  `grep -rn set-state-in-effect src`, which also matches the two hook
+  implementations that legitimately own the idiom.
 
 ---
 
@@ -133,18 +152,20 @@ silently dropped.
   button on font-weight (400 against 600) and border-radius (0 against the
   token). Compare "Run another" on `/results` with "Start session" on `/`. The
   regenerated baselines record the mismatch as correct, so fixing it costs a
-  baseline pass. `styles/controls.css`.
+  baseline pass. The cause is selector shape: `font-weight` and `border-radius`
+  live on the bare `button` element rule (`styles/controls.css:15`), which an
+  `<a>` never matches, while `.is-primary` (`:54`) carries only colour and
+  padding.
 - **`localStore`'s memory fallback is write-only on one path.** The in-memory
   map is consulted when `getItem` throws, so a store where only `setItem` fails
   for a non-quota reason writes to memory that no read ever reaches. The quota
   path — the realistic one — is covered.
-- **`ThemeToggle` is a fifth hand-rolled hydration site**, by the same
-  criterion as the `useHydrated` item above, which names four.
 - **The unsaved-run state has no axe route and no visual baseline.** It is one
   paragraph above an otherwise identical screen and is covered end to end, so
   it was judged not to earn a sweep entry of its own.
-- **`RoundBars`' "a three-round history" comment** reads loosely now that there
-  is no history — in context it means the three bars of one run.
+- **`RoundBars`' "a three-round history" comment** (`RoundBars.tsx:49`) reads
+  loosely now that there is no history — in context it means the three bars of
+  one run.
 - **One e2e test carries no mutation evidence.** `drill.spec.ts`'s empty-state
   test was relocated rather than written, and its string is rendered only by
   the no-run branch on a device with no run, so it cannot pass vacuously. An
