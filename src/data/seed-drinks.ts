@@ -5,7 +5,7 @@ import type { Category, Drink } from '@/lib/drinks/types';
  * `seed:gimlet-rocks` (spec §15, open item 2) and `seed:classic-martini`,
  * which the spec missed. One ticket line has to name one drink to make.
  * mergeSeed only ever adds, so a device that already stored the combined entry
- * keeps it alongside the two new ones and can 86 or delete it on /drinks.
+ * keeps it alongside the two new ones and can exclude or delete it on /drinks.
  */
 export const SEED_VERSION = 2;
 

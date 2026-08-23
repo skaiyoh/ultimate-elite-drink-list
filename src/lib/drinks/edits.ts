@@ -40,7 +40,8 @@ export function recategorizeDrink(
   return mapDrink(state, id, (drink) => ({ ...drink, categoryId }));
 }
 
-/** Off is 86'd: kept in the data, hidden from every deal. */
+/** Off is excluded: kept in the data, hidden from every deal. The control on
+ *  /drinks reads Exclude / Include; the trade's word for it is 86. */
 export function setDrinkEnabled(state: DrinkListState, id: DrinkId, enabled: boolean): DrinkListState {
   return mapDrink(state, id, (drink) => ({ ...drink, enabled }));
 }

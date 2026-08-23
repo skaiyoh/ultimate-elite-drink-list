@@ -29,13 +29,13 @@ test('renames a drink in place', async ({ page }) => {
   await expect(page.getByLabel('Rename Tommys Margarita')).toHaveValue('Tommys Margarita');
 });
 
-test("86's a drink so it stops being dealt", async ({ page }) => {
+test('excluding a drink stops it being dealt', async ({ page }) => {
   await openDrinks(page);
-  await page.getByRole('button', { name: '86 Margarita' }).click();
-  await expect(page.getByRole('button', { name: 'Restore Margarita' })).toBeVisible();
+  await page.getByRole('button', { name: 'Exclude Margarita' }).click();
+  await expect(page.getByRole('button', { name: 'Include Margarita' })).toBeVisible();
 
   await page.reload();
-  await expect(page.getByRole('button', { name: 'Restore Margarita' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Include Margarita' })).toBeVisible();
 });
 
 test('deletes a seed drink and does not resurrect it on reload', async ({ page }) => {
@@ -96,7 +96,7 @@ test('refuses a malformed file and writes nothing', async ({ page }) => {
   await expect(page.getByLabel('Rename Margarita')).toBeVisible();
 });
 
-test('an 86d drink is never dealt', async ({ page }) => {
+test('an excluded drink is never dealt', async ({ page }) => {
   await openDrinks(page);
   const cocktails = page.getByRole('table', { name: 'Cocktails' });
 
@@ -104,14 +104,14 @@ test('an 86d drink is never dealt', async ({ page }) => {
   // deal precisely those and the assertion is not probabilistic.
   const total = (await cocktails.getByRole('row').count()) - 1;
   for (let i = total; i > 7; i--) {
-    await cocktails.getByRole('button', { name: /^86 / }).first().click();
+    await cocktails.getByRole('button', { name: /^Exclude / }).first().click();
   }
   await expect(page.getByRole('heading', { name: /^Cocktails · 7 of / })).toBeVisible();
 
   // The name is on the button's aria-label, not in its visible text.
-  const stillOn = (await cocktails.getByRole('button', { name: /^86 / })
+  const stillOn = (await cocktails.getByRole('button', { name: /^Exclude / })
     .evaluateAll((buttons) => buttons.map((b) => b.getAttribute('aria-label') ?? '')))
-    .map((label) => label.replace(/^86 /, ''))
+    .map((label) => label.replace(/^Exclude /, ''))
     .sort();
   expect(stillOn).toHaveLength(7);
 

@@ -21,7 +21,7 @@ export function DrinkTable({ drinks, categories, ...handlers }: DrinkTableProps)
 
         return (
           <section className="drinks-group" key={category.id}>
-            {/* The available count, not the raw total: an 86'd drink is still
+            {/* The available count, not the raw total: an excluded drink is still
                 in the list but can never be dealt, and the setup guard counts
                 the same way. */}
             <h2>{category.label} · {available} of {inCategory.length} available</h2>

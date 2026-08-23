@@ -29,7 +29,7 @@ describe('DrinkTable', () => {
 
   it('counts what a round can actually be dealt from, not the raw total', () => {
     renderTable();
-    // Two cocktails exist but one is 86'd, so only one is available.
+    // Two cocktails exist but one is excluded, so only one is available.
     expect(screen.getByRole('heading', { name: /Cocktails/ })).toHaveTextContent('1 of 2 available');
   });
 

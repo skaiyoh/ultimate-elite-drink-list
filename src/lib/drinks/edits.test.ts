@@ -57,7 +57,7 @@ describe('recategorizeDrink', () => {
 });
 
 describe('setDrinkEnabled', () => {
-  it("86's a drink without removing it", () => {
+  it('excludes a drink without removing it', () => {
     const next = setDrinkEnabled(state, 'custom-1', false);
     expect(next.drinks[1].enabled).toBe(false);
     expect(next.drinks).toHaveLength(2);

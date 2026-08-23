@@ -4,7 +4,7 @@
 /* The page body never scrolls sideways; a table too wide for a phone scrolls
    inside its own box instead. */
 .drinks-scroll { overflow-x: auto; }
-.drinks-table { width: 100%; min-width: 20rem; border-collapse: collapse; }
+.drinks-table { width: 100%; min-width: 24rem; border-collapse: collapse; }
 .drinks-table th[scope='col'] {
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -18,7 +18,11 @@
 .drink td, .drink th { padding: var(--space-1); vertical-align: middle; }
 .drink[data-enabled='false'] .drink__field { opacity: 0.5; text-decoration: line-through; }
 
-.drink__name { font-weight: 400; width: 55%; }
+/* A floor, not just a share: `width` is only a hint to auto table layout, and
+   the actions column is `nowrap`, so it claims its intrinsic width first and
+   the name is what gets squeezed. On a phone that collapsed the name to three
+   characters — which is the one column that says which drink the row is. */
+.drink__name { font-weight: 400; width: 55%; min-width: 7rem; }
 
 .drink__field {
   width: 100%;

@@ -21,7 +21,8 @@ export interface Drink {
   readonly id: DrinkId;
   readonly name: string;
   readonly categoryId: CategoryId;
-  /** Off means it stays in the data but is hidden from ordering (86'd). */
+  /** Off means it stays in the data but is never dealt.
+   *  Labelled Exclude / Include on /drinks — behind a bar you would say 86'd. */
   readonly enabled: boolean;
 }
 

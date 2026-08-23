@@ -54,19 +54,19 @@ describe('DrinkRow', () => {
     expect(onRecategorize).toHaveBeenCalledWith('seed:margarita', 'martini');
   });
 
-  it("86's an available drink", async () => {
+  it('excludes an available drink from drills', async () => {
     const { onToggle } = renderRow();
-    await userEvent.click(screen.getByRole('button', { name: '86 Margarita' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Exclude Margarita' }));
     expect(onToggle).toHaveBeenCalledWith('seed:margarita', false);
   });
 
-  it('puts an 86d drink back on', async () => {
+  it('puts an excluded drink back in', async () => {
     const { onToggle } = renderRow({ enabled: false });
-    await userEvent.click(screen.getByRole('button', { name: 'Restore Margarita' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Include Margarita' }));
     expect(onToggle).toHaveBeenCalledWith('seed:margarita', true);
   });
 
-  it('marks an 86d drink so it reads as unavailable, not just faded', () => {
+  it('marks an excluded drink so it reads as unavailable, not just faded', () => {
     renderRow({ enabled: false });
     expect(screen.getByRole('row')).toHaveAttribute('data-enabled', 'false');
   });

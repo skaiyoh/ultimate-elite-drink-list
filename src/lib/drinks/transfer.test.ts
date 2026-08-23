@@ -103,7 +103,7 @@ describe('diffImport', () => {
     expect(diffImport(state, roundTrip(state), 'replace')).toEqual({ added: 0, changed: 0, removed: 0 });
   });
 
-  it('counts an 86 as a change, not as a removal', () => {
+  it('counts an exclusion as a change, not as a removal', () => {
     const flipped = roundTrip({
       ...state,
       drinks: state.drinks.map((d) => (d.id === 'custom-1' ? { ...d, enabled: true } : d)),

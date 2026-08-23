@@ -62,10 +62,10 @@ export function DrinkRow({ drink, categories, onRename, onRecategorize, onToggle
             its leading space collapses out of the computed name. */}
         <button
           type="button"
-          aria-label={drink.enabled ? `86 ${drink.name}` : `Restore ${drink.name}`}
+          aria-label={drink.enabled ? `Exclude ${drink.name}` : `Include ${drink.name}`}
           onClick={() => onToggle(drink.id, !drink.enabled)}
         >
-          {drink.enabled ? '86' : 'Restore'}
+          {drink.enabled ? 'Exclude' : 'Include'}
         </button>
         <button
           type="button"
