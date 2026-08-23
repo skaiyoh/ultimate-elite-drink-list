@@ -1,7 +1,7 @@
 # Single-Run Drill — Design Revision
 
 **Date:** 2026-08-21
-**Status:** Approved for planning
+**Status:** Implemented
 **Repo:** `ultimate-elite-drink-list`
 **Revises:** `2026-08-19-bartender-speed-drill-design.md` §3.4, §8, §9, §14, §16
 

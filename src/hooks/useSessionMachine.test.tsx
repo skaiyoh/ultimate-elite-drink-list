@@ -177,7 +177,7 @@ describe('useSessionMachine', () => {
   });
 
   it('keeps the crash-recovery backup when the final round fails to commit', async () => {
-    // Regression test for CRITICAL 2: a failed commitSession must not delete
+    // Regression test for CRITICAL 2: a failed saveLastRun must not delete
     // the active-session backup, or a refresh would lose every completed
     // round even though React still has them rendered on screen.
     const { result } = await mountWithSession(2);
