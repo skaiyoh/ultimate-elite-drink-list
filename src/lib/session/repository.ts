@@ -24,12 +24,13 @@ export function clearActiveSession(): void {
   removeValue(STORAGE_KEYS.activeSession);
 }
 
-export function savePrefs(profileId: string, config: SessionConfig): WriteOutcome {
-  return writeValue(STORAGE_KEYS.prefs(profileId), config);
+/** Device-level: the next person to walk up inherits the last setup used. */
+export function savePrefs(config: SessionConfig): WriteOutcome {
+  return writeValue(STORAGE_KEYS.prefs, config);
 }
 
-export function loadPrefs(profileId: string): SessionConfig | null {
-  return readValue(STORAGE_KEYS.prefs(profileId), parseSessionConfig);
+export function loadPrefs(): SessionConfig | null {
+  return readValue(STORAGE_KEYS.prefs, parseSessionConfig);
 }
 
 /**

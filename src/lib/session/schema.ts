@@ -42,7 +42,6 @@ const activeRoundSchema = z.object({
 
 export const sessionRecordSchema = z.object({
   id: z.string().min(1),
-  profileId: z.string().min(1),
   startedAt: z.number(),
   completedAt: z.number().nullable(),
   config: sessionConfigSchema,

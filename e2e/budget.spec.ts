@@ -97,7 +97,7 @@ test('no charting, animation or icon library has crept in', async () => {
 const LCP_BUDGET_MS = 2500;
 const CLS_BUDGET = 0.1;
 
-for (const route of ['/', '/setup', '/drinks']) {
+for (const route of ['/', '/drinks']) {
   test(`${route} meets its core web vitals`, async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();

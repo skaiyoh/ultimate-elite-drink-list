@@ -49,9 +49,9 @@ export function useSessionMachine(): SessionMachine {
     const restored = loadActiveSession();
     stateRef.current = restored;
     drinksRef.current = loadDrinkList();
-    // Same deliberate one-time-after-mount hydration idiom as useHydrated /
-    // ProfileProvider / the setup page: a single effect that loads the
-    // persisted snapshot and flips hydrated, not a subscription.
+    // Same deliberate one-time-after-mount hydration idiom as useHydrated and
+    // the setup screen: a single effect that loads the persisted snapshot and
+    // flips hydrated, not a subscription.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setState(restored);
     setHydrated(true);

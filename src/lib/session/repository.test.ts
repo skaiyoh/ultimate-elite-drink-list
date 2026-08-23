@@ -17,13 +17,13 @@ describe('active session', () => {
   });
 
   it('round-trips a resting session unchanged', () => {
-    const state = createSession('s1', 'p1', config, 1_000);
+    const state = createSession('s1', config, 1_000);
     saveActiveSession(state);
     expect(loadActiveSession()).toEqual(state);
   });
 
   it('resumes a running session at rest, discarding the in-flight round', () => {
-    const running = sessionReducer(createSession('s1', 'p1', config, 0), { type: 'startRound', ticket, at: 5_000 });
+    const running = sessionReducer(createSession('s1', config, 0), { type: 'startRound', ticket, at: 5_000 });
     saveActiveSession(running);
     const restored = loadActiveSession();
     expect(restored?.status).toBe('resting');
@@ -32,7 +32,7 @@ describe('active session', () => {
   });
 
   it('preserves rounds already completed before the interruption', () => {
-    let state = createSession('s1', 'p1', config, 0);
+    let state = createSession('s1', config, 0);
     state = sessionReducer(state, { type: 'startRound', ticket, at: 0 });
     state = sessionReducer(state, { type: 'advance', at: 200_000 });
     state = sessionReducer(state, { type: 'startRound', ticket, at: 210_000 });
@@ -46,28 +46,27 @@ describe('active session', () => {
   });
 
   it('clears', () => {
-    saveActiveSession(createSession('s1', 'p1', config, 0));
+    saveActiveSession(createSession('s1', config, 0));
     clearActiveSession();
     expect(loadActiveSession()).toBeNull();
   });
 });
 
 describe('prefs', () => {
-  it('round-trips a session config per profile', () => {
+  it('round-trips a session config for the device', () => {
     const custom = { ...config, roundCount: 10, goalMs: 180_000 };
-    savePrefs('p1', custom);
-    expect(loadPrefs('p1')).toEqual(custom);
-    expect(loadPrefs('p2')).toBeNull();
+    savePrefs(custom);
+    expect(loadPrefs()).toEqual(custom);
   });
 
   it('returns null for corrupt prefs', () => {
-    window.localStorage.setItem('ueddl:v1:profile:p1:prefs', '{"roundCount":"five"}');
-    expect(loadPrefs('p1')).toBeNull();
+    window.localStorage.setItem(STORAGE_KEYS.prefs, '{"roundCount":"five"}');
+    expect(loadPrefs()).toBeNull();
   });
 });
 
 describe('last run', () => {
-  const record = toRecord(createSession('s1', 'p1', config, 1_000));
+  const record = toRecord(createSession('s1', config, 1_000));
 
   it('is null before anything has been run', () => {
     expect(loadLastRun()).toBeNull();

@@ -34,7 +34,7 @@ export default function PlayPage() {
     // One question, because there is no undo: the run is not written anywhere.
     if (!window.confirm('Start over? This run will not be saved.')) return;
     machine.startOver();
-    router.replace('/setup');
+    router.replace('/');
   };
 
   // Depends on `currentStatus` and the action callbacks, never on `machine` or
@@ -72,7 +72,7 @@ export default function PlayPage() {
     return (
       <main>
         <h1>No session in progress</h1>
-        <Link href="/setup">Set one up</Link>
+        <Link href="/">Set one up</Link>
       </main>
     );
   }

@@ -15,7 +15,6 @@ export interface ActiveRound {
 
 export interface SessionState {
   readonly id: string;
-  readonly profileId: string;
   readonly config: SessionConfig;
   readonly status: SessionStatus;
   readonly startedAt: number;
@@ -33,9 +32,9 @@ export type SessionAction =
 
 /** A session opens resting: "before round 1" and "between rounds" are one state. */
 export function createSession(
-  id: string, profileId: string, config: SessionConfig, startedAt: number,
+  id: string, config: SessionConfig, startedAt: number,
 ): SessionState {
-  return { id, profileId, config, status: 'resting', startedAt, completedAt: null, current: null, rounds: [] };
+  return { id, config, status: 'resting', startedAt, completedAt: null, current: null, rounds: [] };
 }
 
 /** Live elapsed time, always derived from timestamps — never accumulated. */
@@ -115,7 +114,6 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
 export function toRecord(state: SessionState): SessionRecord {
   return {
     id: state.id,
-    profileId: state.profileId,
     startedAt: state.startedAt,
     completedAt: state.completedAt,
     config: state.config,

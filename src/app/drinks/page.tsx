@@ -65,7 +65,7 @@ export default function DrinksPage() {
       <StorageWarning warning={warning} />
       <h1>Drinks</h1>
       <p className="lede">
-        Edits apply to every profile on this device. Categories are fixed in code; drinks are yours.
+        Categories are fixed in code; drinks are yours.
       </p>
 
       <TransferPanel current={state} onExport={exportList} onImport={importList} />

@@ -10,7 +10,7 @@ const START = 1_800_000_000_000;
 
 async function mountWithSession(roundCount: number) {
   const config = { ...defaultSessionConfig(), roundCount };
-  saveActiveSession(createSession('s1', 'p1', config, START));
+  saveActiveSession(createSession('s1', config, START));
   const rendered = renderHook(() => useSessionMachine());
   await act(async () => {});
   return rendered;

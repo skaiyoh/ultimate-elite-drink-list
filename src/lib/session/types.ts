@@ -33,9 +33,8 @@ export interface SessionConfig {
 
 export interface SessionRecord {
   readonly id: string;
-  readonly profileId: string;
   readonly startedAt: number;
-  /** null means abandoned — kept in history, excluded from averages. */
+  /** null means ended early — kept and shown, marked as such. */
   readonly completedAt: number | null;
   readonly config: SessionConfig;
   readonly rounds: readonly RoundRecord[];

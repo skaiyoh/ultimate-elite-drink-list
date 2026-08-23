@@ -116,7 +116,7 @@ export default function ResultsPage() {
       <main>
         <h1>Last run</h1>
         <p className="empty">No run on this device yet. Finish a drill and it lands here.</p>
-        <p className="results__actions"><Link className="is-primary" href="/setup">Set up a session</Link></p>
+        <p className="results__actions"><Link className="is-primary" href="/">Set up a session</Link></p>
       </main>
     );
   }
@@ -129,7 +129,7 @@ export default function ResultsPage() {
         {run.completedAt === null && ' · Ended early'}
       </p>
       <Breakdown run={run} />
-      <p className="results__actions"><Link className="is-primary" href="/setup">Run another</Link></p>
+      <p className="results__actions"><Link className="is-primary" href="/">Run another</Link></p>
     </main>
   );
 }

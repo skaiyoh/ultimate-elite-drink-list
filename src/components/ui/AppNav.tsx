@@ -9,8 +9,7 @@ interface NavItem {
 }
 
 const ITEMS: readonly NavItem[] = [
-  { href: '/', label: 'Profiles' },
-  { href: '/setup', label: 'Drill' },
+  { href: '/', label: 'Drill' },
   { href: '/results', label: 'Last run' },
   { href: '/drinks', label: 'Drinks' },
 ];

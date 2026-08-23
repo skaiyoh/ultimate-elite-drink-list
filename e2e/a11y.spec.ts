@@ -1,7 +1,7 @@
 // e2e/a11y.spec.ts — axe on every route, in both themes (spec §12).
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { createProfile, seedLastRun } from './helpers';
+import { seedLastRun } from './helpers';
 
 type Theme = 'light' | 'dark';
 
@@ -32,18 +32,16 @@ async function expectNoViolations(page: Page, where: string) {
 }
 
 const routes: readonly { readonly name: string; readonly open: (page: Page) => Promise<void> }[] = [
-  { name: 'profiles', open: async () => {} },
   {
-    name: 'setup',
+    name: 'drill',
     open: async (page) => {
-      await page.getByRole('link', { name: 'Drill' }).click();
       await expect(page.getByRole('heading', { name: 'Set up a session' })).toBeVisible();
     },
   },
   {
     name: 'play running',
     open: async (page) => {
-      await page.getByRole('link', { name: 'Drill' }).click();
+      await page.goto('/');
       await page.getByRole('button', { name: 'Start session' }).click();
       await page.getByRole('button', { name: 'Start round 1' }).click();
       await expect(page.getByRole('list', { name: 'Round ticket' })).toBeVisible();
@@ -52,7 +50,7 @@ const routes: readonly { readonly name: string; readonly open: (page: Page) => P
   {
     name: 'play resting',
     open: async (page) => {
-      await page.getByRole('link', { name: 'Drill' }).click();
+      await page.goto('/');
       await page.getByRole('button', { name: 'Start session' }).click();
       await page.getByRole('button', { name: 'Start round 1' }).click();
       await page.getByRole('button', { name: 'Next round' }).click();
@@ -82,7 +80,7 @@ const routes: readonly { readonly name: string; readonly open: (page: Page) => P
 for (const theme of ['light', 'dark'] as const) {
   for (const route of routes) {
     test(`${route.name} is accessible in ${theme}`, async ({ page }) => {
-      await createProfile(page);
+      await page.goto('/');
       await setTheme(page, theme);
       await route.open(page);
       await expectNoViolations(page, `${route.name} (${theme})`);
@@ -91,8 +89,7 @@ for (const theme of ['light', 'dark'] as const) {
 }
 
 test('every interactive control on setup is reachable by keyboard', async ({ page }) => {
-  await createProfile(page);
-  await page.getByRole('link', { name: 'Drill' }).click();
+  await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Set up a session' })).toBeVisible();
 
   const reached = new Set<string>();
@@ -113,8 +110,7 @@ test('every interactive control on setup is reachable by keyboard', async ({ pag
 });
 
 test('focus is visible rather than only implied by the browser default', async ({ page }) => {
-  await createProfile(page);
-  await page.getByRole('link', { name: 'Drill' }).click();
+  await page.goto('/');
   const start = page.getByRole('button', { name: 'Start session' });
   await start.focus();
 

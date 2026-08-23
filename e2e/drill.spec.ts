@@ -1,16 +1,9 @@
 // e2e/drill.spec.ts
 import { expect, test } from '@playwright/test';
-import { abandonSession, createProfile } from './helpers';
-
-async function createProfileAndOpenSetup(page: import('@playwright/test').Page) {
-  await page.goto('/');
-  await page.getByLabel('New profile').fill('Nathan');
-  await page.getByRole('button', { name: 'Add', exact: true }).click();
-  await page.getByRole('link', { name: /Start a session/ }).click();
-}
+import { abandonSession } from './helpers';
 
 test('runs a full three-round session and reports the average', async ({ page }) => {
-  await createProfileAndOpenSetup(page);
+  await page.goto('/');
   await page.getByRole('button', { name: '3', exact: true }).click();
   await page.getByRole('button', { name: 'Start session' }).click();
 
@@ -30,7 +23,7 @@ test('runs a full three-round session and reports the average', async ({ page })
 });
 
 test('hides the next ticket until the round is started', async ({ page }) => {
-  await createProfileAndOpenSetup(page);
+  await page.goto('/');
   await page.getByRole('button', { name: 'Start session' }).click();
   await expect(page.getByRole('list', { name: 'Round ticket' })).toHaveCount(0);
   await page.getByRole('button', { name: 'Start round 1' }).click();
@@ -38,7 +31,7 @@ test('hides the next ticket until the round is started', async ({ page }) => {
 });
 
 test('resumes an interrupted session at rest rather than mid-round', async ({ page }) => {
-  await createProfileAndOpenSetup(page);
+  await page.goto('/');
   await page.getByRole('button', { name: 'Start session' }).click();
   await page.getByRole('button', { name: 'Start round 1' }).click();
   await expect(page.getByRole('list', { name: 'Round ticket' })).toBeVisible();
@@ -50,7 +43,7 @@ test('resumes an interrupted session at rest rather than mid-round', async ({ pa
 });
 
 test('drives a whole round from the keyboard', async ({ page }) => {
-  await createProfileAndOpenSetup(page);
+  await page.goto('/');
   await page.getByRole('button', { name: '3', exact: true }).click();
   await page.getByRole('button', { name: 'Start session' }).click();
 
@@ -74,7 +67,7 @@ test('drives a whole round from the keyboard', async ({ page }) => {
 });
 
 test('blocks starting a session with too small a pool', async ({ page }) => {
-  await createProfileAndOpenSetup(page);
+  await page.goto('/');
   for (const label of ['Shots', 'Well Drinks', 'Cocktails', 'Martinis']) {
     await page.getByLabel(label).uncheck();
   }
@@ -87,7 +80,7 @@ test('blocks starting a session with too small a pool', async ({ page }) => {
 });
 
 test('a finished run lands on the results screen and survives a refresh', async ({ page }) => {
-  await createProfileAndOpenSetup(page);
+  await page.goto('/');
   await page.getByRole('button', { name: '3', exact: true }).click();
   await page.getByRole('button', { name: 'Start session' }).click();
 
@@ -104,7 +97,7 @@ test('a finished run lands on the results screen and survives a refresh', async 
 });
 
 test('starting over records nothing', async ({ page }) => {
-  await createProfileAndOpenSetup(page);
+  await page.goto('/');
   await page.getByRole('button', { name: 'Start session' }).click();
   await page.getByRole('button', { name: 'Start round 1' }).click();
   await page.getByRole('button', { name: 'Next round' }).click();
@@ -121,7 +114,7 @@ test('starting over records nothing', async ({ page }) => {
 test('a second run replaces the first', async ({ page }) => {
   // The premise of the whole revision: one slot, overwritten. Covered at unit
   // level too, but this is the path a second person walking up actually takes.
-  await createProfileAndOpenSetup(page);
+  await page.goto('/');
   await page.getByRole('button', { name: '3', exact: true }).click();
   await page.getByRole('button', { name: 'Start session' }).click();
   for (let round = 1; round <= 3; round++) {
@@ -143,7 +136,7 @@ test('a second run replaces the first', async ({ page }) => {
 });
 
 test('a declined start over leaves the session running', async ({ page }) => {
-  await createProfileAndOpenSetup(page);
+  await page.goto('/');
   await page.getByRole('button', { name: 'Start session' }).click();
   await page.getByRole('button', { name: 'Start round 1' }).click();
 
@@ -154,6 +147,5 @@ test('a declined start over leaves the session running', async ({ page }) => {
 });
 
 test('a run ended early is kept and marked as such', async ({ page }) => {
-  await createProfile(page);
   await abandonSession(page);
 });

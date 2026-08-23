@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { Archivo_Narrow, IBM_Plex_Sans } from 'next/font/google';
-import { ProfileProvider } from '@/components/profile/ProfileProvider';
 import { AppNav } from '@/components/ui/AppNav';
 import { StorageBanner } from '@/components/ui/StorageBanner';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
@@ -62,7 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <AppNav />
           <ThemeToggle />
         </header>
-        <ProfileProvider>{children}</ProfileProvider>
+        {children}
       </body>
     </html>
   );
