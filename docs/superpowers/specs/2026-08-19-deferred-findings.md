@@ -121,3 +121,31 @@ written out in full.
   time makes the record an opinion. If real use shows people scrapping long
   Rush sessions over one mis-tap, the decision to revisit is per-round
   discard, not per-round editing.
+
+## Parked by the single-run revision's final review
+
+Raised by the whole-branch review or its scoped re-review, judged real but not
+worth re-opening the branch's last gate. Each was adjudicated rather than
+silently dropped.
+
+- **A link styled as a button is not styled as a button.** `a.is-primary` now
+  drops the browser underline, but still differs from a real `.is-primary`
+  button on font-weight (400 against 600) and border-radius (0 against the
+  token). Compare "Run another" on `/results` with "Start session" on `/`. The
+  regenerated baselines record the mismatch as correct, so fixing it costs a
+  baseline pass. `styles/controls.css`.
+- **`localStore`'s memory fallback is write-only on one path.** The in-memory
+  map is consulted when `getItem` throws, so a store where only `setItem` fails
+  for a non-quota reason writes to memory that no read ever reaches. The quota
+  path — the realistic one — is covered.
+- **`ThemeToggle` is a fifth hand-rolled hydration site**, by the same
+  criterion as the `useHydrated` item above, which names four.
+- **The unsaved-run state has no axe route and no visual baseline.** It is one
+  paragraph above an otherwise identical screen and is covered end to end, so
+  it was judged not to earn a sweep entry of its own.
+- **`RoundBars`' "a three-round history" comment** reads loosely now that there
+  is no history — in context it means the three bars of one run.
+- **One e2e test carries no mutation evidence.** `drill.spec.ts`'s empty-state
+  test was relocated rather than written, and its string is rendered only by
+  the no-run branch on a device with no run, so it cannot pass vacuously. An
+  evidence gap, not an unproven behaviour.
