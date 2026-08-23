@@ -10,7 +10,12 @@ export default defineConfig({
   // foreign app already listening on 3000 would be silently adopted and the
   // whole suite would run against the wrong application — failing with
   // baffling selector errors, or worse, appearing to pass.
-  use: { baseURL: 'http://localhost:3100', trace: 'on-first-retry' },
+  // timezoneId pins what the seeded run's fixed instant renders as. /results
+  // formats it in the reader's own zone, which is right for a device-local app
+  // and wrong for a committed baseline: the same PNG reads 2:42 PM here, 7:42
+  // PM in UTC, and Jan 6 east of UTC+5. Locale is already pinned in
+  // lib/format/date.ts; this is the other half of the same problem.
+  use: { baseURL: 'http://localhost:3100', timezoneId: 'UTC', trace: 'on-first-retry' },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
     command: 'npm run build && npm run start -- -p 3100',

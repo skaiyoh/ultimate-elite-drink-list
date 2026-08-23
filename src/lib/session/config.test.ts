@@ -64,8 +64,8 @@ describe('difficultyLabel', () => {
   });
 
   it('falls back to the stored id rather than throwing on a retired difficulty', () => {
-    // History outlives the presets table. A session saved under a difficulty
-    // that has since been renamed away must still render, not crash the screen.
+    // A stored run outlives the presets table. A session saved under a
+    // difficulty since renamed away must still render, not crash the screen.
     expect(difficultyLabel('legacy' as never)).toBe('legacy');
   });
 });

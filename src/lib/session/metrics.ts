@@ -15,7 +15,12 @@ export function verdict(durationMs: number, goalMs: number): 'pass' | 'miss' {
   return durationMs <= goalMs ? 'pass' : 'miss';
 }
 
-/** The honest cross-session comparison: bands make rounds similar, not identical. */
+/**
+ * Whether a fast round was fast or merely small — bands make rounds similar,
+ * not identical, so the clock alone does not say. Introduced as the honest
+ * cross-session comparison; there are no cross-session comparisons left, and
+ * this is the reason it stays anyway.
+ */
 export function secondsPerUnit(round: RoundRecord): number {
   if (round.totalUnits <= 0) return 0;
   return round.durationMs / 1000 / round.totalUnits;

@@ -4,7 +4,7 @@ import type { CategoryId, DrinkId } from '@/lib/drinks/types';
  *  needs SessionConfig, which would otherwise be a circular import. */
 export type DifficultyId = 'warmup' | 'standard' | 'rush';
 
-/** One line on a dealt ticket. `name` is snapshotted so history survives renames. */
+/** One line on a dealt ticket. `name` is snapshotted so a stored run survives renames. */
 export interface TicketLine {
   readonly drinkId: DrinkId;
   readonly name: string;

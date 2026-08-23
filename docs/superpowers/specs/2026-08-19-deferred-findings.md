@@ -84,10 +84,10 @@ written out in full.
 
 ### Components
 
-- `useHydrated` is not unused — `StorageBanner.tsx` imports and calls it. Two
+- `useHydrated` is not unused — `StorageBanner.tsx` imports and calls it. Four
   other sites hand-roll the identical load-once-after-mount idiom instead of
-  reusing it, each with its own eslint-disable: `src/hooks/useSessionMachine.ts`
-  and `src/app/page.tsx`.
+  reusing it, each with its own eslint-disable: `src/hooks/useSessionMachine.ts`,
+  `src/app/page.tsx`, `src/app/drinks/page.tsx` and `src/app/results/page.tsx`.
 
 ---
 

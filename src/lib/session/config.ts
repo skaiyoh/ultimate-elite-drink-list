@@ -42,7 +42,8 @@ export function defaultSessionConfig(): SessionConfig {
 
 /**
  * Display name for a difficulty. Unlike `bandFor`, this never throws: it is
- * called with ids read back from stored history, which outlives this table.
+ * called with ids read back from the last-run slot and the active-session
+ * backup, both of which outlive this table.
  */
 export function difficultyLabel(id: DifficultyId): string {
   return DIFFICULTIES.find((d) => d.id === id)?.label ?? id;

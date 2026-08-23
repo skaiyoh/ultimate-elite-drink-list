@@ -6,7 +6,12 @@
  * deleting that screen would have quietly unstyled a screen that stays.
  */
 
-.lede { color: var(--color-muted); margin-top: calc(var(--space-1) * -1); }
+/* One rule, and the shorthand form: the landing screen carried a second copy
+   of this class that also set a bottom margin. Two renderings of one class is
+   bad enough, but a client-side navigation keeps the previous route's
+   stylesheet loaded — so which of the two /drinks and /results got depended on
+   whether you arrived by tapping a nav link or by loading the URL. */
+.lede { color: var(--color-muted); margin: calc(var(--space-1) * -1) 0 var(--space-3); }
 
 .empty {
   margin: 0 0 var(--space-3);

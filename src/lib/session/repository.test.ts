@@ -40,6 +40,23 @@ describe('active session', () => {
     expect(loadActiveSession()?.rounds).toHaveLength(1);
   });
 
+  it('resumes a session stored by the profile-era build, dropping its profileId', () => {
+    // Spec §9 promises this rather than merely tolerating it: someone mid-drill
+    // when the app updates keeps their session. The guarantee rests entirely on
+    // Zod object schemas stripping unknown keys, so a later pass that tightened
+    // these to `.strict()` would break a documented promise with nothing red to
+    // show for it.
+    const state = createSession('s1', config, 1_000);
+    window.localStorage.setItem(
+      STORAGE_KEYS.activeSession,
+      JSON.stringify({ ...state, profileId: 'p1' }),
+    );
+
+    const restored = loadActiveSession();
+    expect(restored).toEqual(state);
+    expect(restored).not.toHaveProperty('profileId');
+  });
+
   it('returns null for corrupt stored data', () => {
     window.localStorage.setItem('ueddl:v1:active-session', '{"status":"weird"}');
     expect(loadActiveSession()).toBeNull();

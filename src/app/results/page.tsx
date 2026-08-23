@@ -5,13 +5,44 @@ import { RoundBars } from '@/components/charts/RoundBars';
 import { formatDateTime } from '@/lib/format/date';
 import { formatDuration } from '@/lib/format/duration';
 import { difficultyLabel } from '@/lib/session/config';
+import { toRecord } from '@/lib/session/machine';
 import { averageMs, secondsPerUnit, verdict } from '@/lib/session/metrics';
-import { loadLastRun } from '@/lib/session/repository';
+import { loadActiveSession, loadLastRun } from '@/lib/session/repository';
 import type { SessionRecord } from '@/lib/session/types';
 import './results.css';
 
-/** `null` means "not looked yet"; a finished lookup that found nothing is `'none'`. */
-type Lookup = SessionRecord | 'none' | null;
+/**
+ * Three outcomes, and collapsing any two of them breaks something.
+ *
+ * `null` is "not looked yet" — localStorage cannot be read during render, so
+ * the first pass has to be a placeholder that matches the server's. `'none'`
+ * is a finished lookup that found nothing. A run carries where it came from,
+ * because a run recovered from the backup has to say that it was never saved.
+ */
+type Lookup = null | 'none' | { readonly run: SessionRecord; readonly source: 'saved' | 'unsaved' };
+
+/**
+ * The saved run, or failing that the crash-recovery backup — but only when the
+ * backup holds a finished one.
+ *
+ * That pair of conditions has exactly one cause: the run ended, the write to
+ * the last-run slot failed, and the backup was deliberately kept because it is
+ * then the only copy. Nothing else leaves a finished session in the active
+ * slot — one interrupted mid-drill is restored at rest, never complete — so a
+ * half-run cannot reach the screen this way. The failed write leaves no
+ * warning behind for this screen to read; the combination *is* the signal.
+ */
+function lookUpRun(): Lookup {
+  const saved = loadLastRun();
+  if (saved !== null) return { run: saved, source: 'saved' };
+
+  const backup = loadActiveSession();
+  if (backup !== null && backup.status === 'complete') {
+    return { run: toRecord(backup), source: 'unsaved' };
+  }
+
+  return 'none';
+}
 
 function Breakdown({ run }: { run: SessionRecord }) {
   const { config, rounds } = run;
@@ -100,18 +131,18 @@ function Breakdown({ run }: { run: SessionRecord }) {
 }
 
 export default function ResultsPage() {
-  const [run, setRun] = useState<Lookup>(null);
+  const [lookup, setLookup] = useState<Lookup>(null);
 
   useEffect(() => {
     // The same one-time-after-mount load every screen reading storage uses:
     // localStorage is unavailable during SSR, so it cannot be read in render.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setRun(loadLastRun() ?? 'none');
+    setLookup(lookUpRun());
   }, []);
 
-  if (run === null) return <main><p>Loading…</p></main>;
+  if (lookup === null) return <main><p>Loading…</p></main>;
 
-  if (run === 'none') {
+  if (lookup === 'none') {
     return (
       <main>
         <h1>Last run</h1>
@@ -121,8 +152,20 @@ export default function ResultsPage() {
     );
   }
 
+  const { run, source } = lookup;
+
   return (
     <main>
+      {/* An unsaved run is shown exactly as a saved one, and said out loud
+          rather than left for the reader to find out when it is gone. Silence
+          would be the worst of both: the run on screen, and the screen
+          implying it is the one this device kept. */}
+      {source === 'unsaved' && (
+        <p role="alert">
+          This run could not be saved — this device&apos;s storage would not take it.
+          It is showing from the crash-recovery copy, which the next session overwrites.
+        </p>
+      )}
       <h1>Last run</h1>
       <p className="lede">
         {formatDateTime(run.startedAt)} · {difficultyLabel(run.config.difficultyId)}

@@ -74,7 +74,16 @@ export function useSessionMachine(): SessionMachine {
       // if it fails (e.g. quota), the backup is the only copy of every
       // completed round, and deleting it here would destroy the run React
       // still has rendered on screen.
+      //
+      // Refreshed rather than merely kept, because "kept" left it a round
+      // short: the last round is only ever written through saveLastRun, so a
+      // backup last touched by the previous action holds the run minus the
+      // round that just finished. /play replaces the route immediately after
+      // this, so whatever is in the slot now is the whole of what survives.
+      // Its own outcome is discarded on purpose — the failure worth reporting
+      // is that the run was not saved, which `outcome` already carries.
       if (outcome === 'ok') clearActiveSession();
+      else saveActiveSession(next);
     } else {
       outcome = saveActiveSession(next);
     }

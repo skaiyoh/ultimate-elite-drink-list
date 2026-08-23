@@ -81,7 +81,7 @@ input:not([type='checkbox']) {
 }
 
 a.nav__link,
-main a:not(.session__link) {
+main a {
   display: inline-flex;
   align-items: center;
   min-height: 24px;
@@ -126,11 +126,16 @@ legend, label {
  * `.is-primary` is excluded on purpose: this selector is 0-2-2 and would beat
  * the 0-1-0 class, repainting a brass button's label brass-on-brass — 2.04:1.
  * A link acting as a button is a button, and keeps the button's colours. */
-main a:not(.session__link):not(.nav__link):not(.is-primary) {
+main a:not(.nav__link):not(.is-primary) {
   color: var(--color-accent-ink);
   text-decoration: none;
   border-bottom: 1px solid color-mix(in oklch, var(--color-accent) 40%, transparent);
   padding-bottom: 1px;
 }
 
-main a:not(.session__link):not(.nav__link):not(.is-primary):hover { border-bottom-color: var(--color-accent); }
+main a:not(.nav__link):not(.is-primary):hover { border-bottom-color: var(--color-accent); }
+
+/* The other half of that exclusion. Being left out of the rail above also
+   left the browser underline on, so a brass button rendered underlined
+   wherever a link wore .is-primary. A button does not have one. */
+a.is-primary { text-decoration: none; }

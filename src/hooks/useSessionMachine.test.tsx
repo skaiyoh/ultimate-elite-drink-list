@@ -3,8 +3,11 @@ import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useSessionMachine } from '@/hooks/useSessionMachine';
 import { defaultSessionConfig } from '@/lib/session/config';
-import { createSession } from '@/lib/session/machine';
-import { loadActiveSession, loadLastRun, saveActiveSession } from '@/lib/session/repository';
+import { createSession, toRecord } from '@/lib/session/machine';
+import {
+  loadActiveSession, loadLastRun, saveActiveSession, saveLastRun,
+} from '@/lib/session/repository';
+import { STORAGE_KEYS } from '@/lib/storage/localStore';
 
 const START = 1_800_000_000_000;
 
@@ -213,15 +216,63 @@ describe('useSessionMachine', () => {
     vi.unstubAllGlobals();
   });
 
-  it('records nothing when a run is scrapped', async () => {
+  it('records nothing when a run is scrapped, and leaves the run before it alone', async () => {
+    // Seeded first, and that is the whole point of the test. Against an empty
+    // slot "nothing was recorded" passes whether startOver writes nothing or
+    // clears the slot outright — and clearing it would mean a mis-tap on
+    // round one destroys the run somebody finished ten minutes ago.
+    const earlier = toRecord(createSession('earlier', defaultSessionConfig(), START - 600_000));
+    saveLastRun(earlier);
+
     const { result } = await mountWithSession(3);
 
     await act(async () => { result.current.startRound(); });
     await act(async () => { result.current.startOver(); });
 
-    // The point of Start over: a scrapped run must not become the saved result.
-    expect(loadLastRun()).toBeNull();
+    // Unchanged: not overwritten by the scrapped run, and not cleared either.
+    expect(loadLastRun()).toEqual(earlier);
     expect(loadActiveSession()).toBeNull();
     expect(result.current.state).toBeNull();
+  });
+
+  it('backs up the whole finished run when the last-run write fails', async () => {
+    // /play replaces the route the instant the status goes complete, so
+    // whatever is in the backup at this point is the entire surviving copy —
+    // and the final round is written through saveLastRun and nowhere else.
+    // Leaving the previous backup in place kept the run minus its last round.
+    const { result } = await mountWithSession(2);
+    await act(async () => { result.current.startRound(); });
+    vi.setSystemTime(START + 100_000);
+    await act(async () => { result.current.advance(); });
+
+    // Only the last-run key fails, unlike the throw-everything stub above. A
+    // store with no room at all cannot be rescued by anything; the case worth
+    // handling is a record that will not fit as a new key while the slot
+    // already holding a smaller value still takes an overwrite.
+    const real = window.localStorage;
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => real.getItem(key),
+      setItem: (key: string, value: string) => {
+        if (key === STORAGE_KEYS.lastRun) {
+          const e = new Error('full');
+          e.name = 'QuotaExceededError';
+          throw e;
+        }
+        real.setItem(key, value);
+      },
+      removeItem: (key: string) => real.removeItem(key),
+    });
+
+    await act(async () => { result.current.startRound(); });
+    vi.setSystemTime(START + 300_000);
+    await act(async () => { result.current.advance(); });
+    vi.unstubAllGlobals();
+
+    expect(result.current.storageWarning).toBe('quota');
+    expect(loadLastRun()).toBeNull();
+
+    const backup = loadActiveSession();
+    expect(backup?.status).toBe('complete');
+    expect(backup?.rounds).toHaveLength(2);
   });
 });

@@ -5,8 +5,6 @@
  * ink colours — not the ground ones — apply.
  */
 
-.lede { color: var(--color-muted); margin: calc(var(--space-1) * -1) 0 var(--space-3); }
-
 .setup { display: grid; gap: var(--space-3); }
 
 .setup__field {

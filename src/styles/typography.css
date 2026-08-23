@@ -20,7 +20,6 @@ body {
 
 h1, h2, h3,
 .ticket__name,
-.session__link,
 .chart__caption {
   font-family: var(--font-display), var(--font-body), system-ui, sans-serif;
   line-height: 1.05;
@@ -51,8 +50,7 @@ h3 { font-size: var(--text-h3); }
 /* Numbers that are read at a glance rather than in a sentence. */
 .clock__value,
 .rest__time,
-.stat__value,
-.session__average {
+.stat__value {
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;
 }

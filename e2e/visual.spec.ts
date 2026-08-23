@@ -1,4 +1,4 @@
-// e2e/visual.spec.ts — spec §12: the three review-worthy screens at four
+// e2e/visual.spec.ts — spec §12: the five review-worthy screens at four
 // breakpoints, in both themes. Playwright disables animations for screenshots,
 // so the docket's arrival does not make these flake.
 //

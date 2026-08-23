@@ -28,6 +28,16 @@ describe('AppNav', () => {
     render(<AppNav />);
     expect(screen.getByRole('link', { name: 'Last run' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: 'Drinks' })).not.toHaveAttribute('aria-current');
+    // Drill specifically, and not merely as one more unmarked link: `/` is a
+    // prefix of every path here, so the exact-match guard in isCurrent is the
+    // only thing between this and Drill reading as current on every screen.
+    expect(screen.getByRole('link', { name: 'Drill' })).not.toHaveAttribute('aria-current');
+  });
+
+  it('marks Drill when the landing route is the one you are on', () => {
+    pathname = '/';
+    render(<AppNav />);
+    expect(screen.getByRole('link', { name: 'Drill' })).toHaveAttribute('aria-current', 'page');
   });
 
   it('disappears during a round, where a stray tap would discard it', () => {
