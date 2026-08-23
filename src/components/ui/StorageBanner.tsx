@@ -14,7 +14,7 @@ export function StorageBanner() {
 
   return (
     <p className="banner" role="status">
-      This browser is blocking local storage, so sessions and profiles won&apos;t be saved.
+      This browser is blocking local storage, so sessions and drink edits won&apos;t be saved.
     </p>
   );
 }

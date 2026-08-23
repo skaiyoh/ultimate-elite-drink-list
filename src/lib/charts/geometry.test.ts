@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { areaPoints, extentOf, polylinePoints, xFor, yFor } from '@/lib/charts/geometry';
+import { extentOf, yFor } from '@/lib/charts/geometry';
 
 describe('extentOf', () => {
   it('spans the values it is given', () => {
@@ -62,46 +62,5 @@ describe('yFor', () => {
 
   it('clamps a value above the extent to the ceiling', () => {
     expect(yFor(150, extent, 200)).toBe(0);
-  });
-});
-
-describe('xFor', () => {
-  it('centres a lone point rather than pinning it to the left edge', () => {
-    expect(xFor(0, 1, 100)).toBe(50);
-  });
-
-  it('spans edge to edge for several points', () => {
-    expect(xFor(0, 3, 100)).toBe(0);
-    expect(xFor(1, 3, 100)).toBe(50);
-    expect(xFor(2, 3, 100)).toBe(100);
-  });
-});
-
-describe('polylinePoints', () => {
-  it('renders SVG point pairs', () => {
-    expect(polylinePoints([0, 100], { min: 0, max: 100 }, 100, 50)).toBe('0,50 100,0');
-  });
-
-  it('is empty for an empty series, so the polyline renders nothing', () => {
-    expect(polylinePoints([], { min: 0, max: 1 }, 100, 50)).toBe('');
-  });
-
-  it('rounds to keep the markup small', () => {
-    expect(polylinePoints([33], { min: 0, max: 100 }, 100, 100)).toBe('50,67');
-  });
-});
-
-describe('areaPoints', () => {
-  it('closes the line down to the baseline so it encloses a shape', () => {
-    // The line runs 0,50 -> 100,0; the area adds the two floor corners.
-    expect(areaPoints([0, 100], { min: 0, max: 100 }, 100, 50)).toBe('0,50 0,50 100,0 100,50');
-  });
-
-  it('is empty for an empty series, so no stray triangle is drawn', () => {
-    expect(areaPoints([], { min: 0, max: 1 }, 100, 50)).toBe('');
-  });
-
-  it('encloses a single point against the baseline rather than a bare dot', () => {
-    expect(areaPoints([50], { min: 0, max: 100 }, 100, 100)).toBe('50,100 50,50 50,100');
   });
 });

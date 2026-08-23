@@ -2,11 +2,8 @@ const PREFIX = 'ueddl:v1';
 
 export const STORAGE_KEYS = {
   drinks: `${PREFIX}:drinks`,
-  profiles: `${PREFIX}:profiles`,
-  activeProfile: `${PREFIX}:active-profile`,
   theme: `${PREFIX}:theme`,
+  prefs: `${PREFIX}:prefs`,
   activeSession: `${PREFIX}:active-session`,
-  prefs: (profileId: string) => `${PREFIX}:profile:${profileId}:prefs`,
-  sessionIndex: (profileId: string) => `${PREFIX}:profile:${profileId}:session-index`,
-  session: (sessionId: string) => `${PREFIX}:session:${sessionId}`,
+  lastRun: `${PREFIX}:last-run`,
 } as const;

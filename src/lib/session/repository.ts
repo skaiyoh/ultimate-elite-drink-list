@@ -24,56 +24,31 @@ export function clearActiveSession(): void {
   removeValue(STORAGE_KEYS.activeSession);
 }
 
-function parseIdList(raw: unknown): string[] | null {
-  return Array.isArray(raw) && raw.every((v) => typeof v === 'string') ? (raw as string[]) : null;
+/** Device-level: the next person to walk up inherits the last setup used. */
+export function savePrefs(config: SessionConfig): WriteOutcome {
+  return writeValue(STORAGE_KEYS.prefs, config);
 }
 
-export function loadSessionIndex(profileId: string): string[] {
-  return readValue(STORAGE_KEYS.sessionIndex(profileId), parseIdList) ?? [];
-}
-
-/**
- * Sessions are append-only and immutable, so this is an O(1) write per session.
- *
- * The record and the index are two separate writes and localStorage has no
- * transaction. If the second one fails, the first is rolled back: a record the
- * index cannot reach is invisible in history forever, whereas a clean failure
- * is reported to the caller, which still holds the crash-recovery backup. The
- * rollback only ever removes a record this call just wrote or an equivalent
- * orphan — an already-indexed id returns before reaching the index write.
- */
-export function commitSession(record: SessionRecord): WriteOutcome {
-  const written = writeValue(STORAGE_KEYS.session(record.id), record);
-  if (written !== 'ok') return written;
-
-  const index = loadSessionIndex(record.profileId);
-  if (index.includes(record.id)) return 'ok';
-
-  const indexed = writeValue(STORAGE_KEYS.sessionIndex(record.profileId), [record.id, ...index]);
-  if (indexed !== 'ok') removeValue(STORAGE_KEYS.session(record.id));
-  return indexed;
-}
-
-export function loadSession(sessionId: string): SessionRecord | null {
-  return readValue(STORAGE_KEYS.session(sessionId), parseSessionRecord);
+export function loadPrefs(): SessionConfig | null {
+  return readValue(STORAGE_KEYS.prefs, parseSessionConfig);
 }
 
 /**
- * Every committed session for a profile, newest first.
+ * The one finished run this device keeps, overwritten by the next.
  *
- * A record that is missing or fails validation is skipped rather than thrown
- * on: one corrupt key must not take down the whole history screen (spec §11).
+ * Deliberately a single key rather than an index: "only the most recent run
+ * matters" is the premise, so there is no second write to keep consistent and
+ * no orphan to roll back.
  */
-export function loadHistory(profileId: string): SessionRecord[] {
-  return loadSessionIndex(profileId)
-    .map(loadSession)
-    .filter((record): record is SessionRecord => record !== null);
+export function saveLastRun(record: SessionRecord): WriteOutcome {
+  return writeValue(STORAGE_KEYS.lastRun, record);
 }
 
-export function savePrefs(profileId: string, config: SessionConfig): WriteOutcome {
-  return writeValue(STORAGE_KEYS.prefs(profileId), config);
+/** Null for absent or unreadable — a corrupt run must not take down the screen. */
+export function loadLastRun(): SessionRecord | null {
+  return readValue(STORAGE_KEYS.lastRun, parseSessionRecord);
 }
 
-export function loadPrefs(profileId: string): SessionConfig | null {
-  return readValue(STORAGE_KEYS.prefs(profileId), parseSessionConfig);
+export function clearLastRun(): void {
+  removeValue(STORAGE_KEYS.lastRun);
 }

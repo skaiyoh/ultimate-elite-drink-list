@@ -2,13 +2,14 @@
 import { expect, test, type Browser } from '@playwright/test';
 import { gzipSync } from 'node:zlib';
 
-/** The heaviest route: charts, stats aggregation and the full session library. */
-const HEAVIEST_ROUTE = '/stats';
+/** The heaviest route: the full drink list, its editor rows and the transfer panel. */
+const HEAVIEST_ROUTE = '/drinks';
 
 /**
- * Spec §13. Measured at 203.2kb gz, against a 197.5kb framework floor — a bare
- * `'use client'` page containing nothing but an `<h1>` costs the same 197.5kb,
- * so almost all of this is Next and React rather than anything written here.
+ * Spec §13. /drinks measures at 202.7kb gz, against a 197.5kb framework floor —
+ * a bare `'use client'` page containing nothing but an `<h1>` costs the same
+ * 197.5kb, so almost all of this is Next and React rather than anything
+ * written here.
  *
  * The ceiling governs the total while leaving ~12kb of headroom: a charting or
  * date library would blow straight through it, ordinary feature work will not.
@@ -63,7 +64,7 @@ async function transferred(browser: Browser, route: string, settled: string) {
 }
 
 test('total javascript stays inside its ceiling', async ({ browser }) => {
-  const { js } = await transferred(browser, HEAVIEST_ROUTE, 'Stats');
+  const { js } = await transferred(browser, HEAVIEST_ROUTE, 'Drinks');
 
   expect(js, `JS is ${js.toFixed(1)}kb gz — the measurement looks truncated`)
     .toBeGreaterThan(TOTAL_JS_FLOOR_KB);
@@ -71,7 +72,7 @@ test('total javascript stays inside its ceiling', async ({ browser }) => {
 });
 
 test('css stays well inside its budget', async ({ browser }) => {
-  const { css } = await transferred(browser, HEAVIEST_ROUTE, 'Stats');
+  const { css } = await transferred(browser, HEAVIEST_ROUTE, 'Drinks');
   expect(css, `css is ${css.toFixed(1)}kb gz`).toBeLessThan(CSS_BUDGET_KB);
 });
 
@@ -96,7 +97,7 @@ test('no charting, animation or icon library has crept in', async () => {
 const LCP_BUDGET_MS = 2500;
 const CLS_BUDGET = 0.1;
 
-for (const route of ['/', '/setup', '/stats']) {
+for (const route of ['/', '/drinks']) {
   test(`${route} meets its core web vitals`, async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();

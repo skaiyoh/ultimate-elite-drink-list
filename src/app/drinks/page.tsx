@@ -14,7 +14,6 @@ import {
 } from '@/lib/drinks/transfer';
 import type { CategoryId, DrinkListState } from '@/lib/drinks/types';
 import type { WriteOutcome } from '@/lib/storage/localStore';
-import '@/app/history/history.css';
 import '@/components/drinks/drinks.css';
 
 export default function DrinksPage() {
@@ -66,7 +65,7 @@ export default function DrinksPage() {
       <StorageWarning warning={warning} />
       <h1>Drinks</h1>
       <p className="lede">
-        Edits apply to every profile on this device. Categories are fixed in code; drinks are yours.
+        Categories are fixed in code; drinks are yours.
       </p>
 
       <TransferPanel current={state} onExport={exportList} onImport={importList} />

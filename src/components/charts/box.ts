@@ -1,7 +1,7 @@
 /**
- * One coordinate space shared by every chart, so a trend and a bar chart
- * stacked on the same screen line up instead of drifting a few pixels apart.
- * The SVG scales with CSS; these are viewBox units, not device pixels.
+ * The chart coordinate space. One chart uses it today; it stays a module of its
+ * own so a second would share the frame rather than drift a few pixels off the
+ * first. The SVG scales with CSS; these are viewBox units, not device pixels.
  */
 export const VIEW_WIDTH = 600;
 // Deliberately wide: rendered at the page's full width, a 3:1 box came out

@@ -1,10 +1,8 @@
 // e2e/drinks.spec.ts
 import { expect, test } from '@playwright/test';
-import { createProfile } from './helpers';
 
 async function openDrinks(page: import('@playwright/test').Page) {
-  await createProfile(page);
-  await page.getByRole('link', { name: 'Drinks' }).click();
+  await page.goto('/drinks');
   await expect(page.getByRole('heading', { name: 'Drinks', level: 1 })).toBeVisible();
 }
 
@@ -117,7 +115,7 @@ test('an 86d drink is never dealt', async ({ page }) => {
     .sort();
   expect(stillOn).toHaveLength(7);
 
-  await page.getByRole('link', { name: 'Drill' }).click();
+  await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Set up a session' })).toBeVisible();
   for (const label of ['Shots', 'Well Drinks', 'Martinis']) {
     await page.getByLabel(label).uncheck();

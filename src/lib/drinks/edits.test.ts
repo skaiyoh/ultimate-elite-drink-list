@@ -34,7 +34,7 @@ describe('addDrink', () => {
 });
 
 describe('renameDrink', () => {
-  it('renames in place, keeping the id that history refers to', () => {
+  it('renames in place, keeping the id a stored run refers to', () => {
     const next = renameDrink(state, 'seed:margarita', 'Tommys Margarita');
     expect(next.drinks[0]).toEqual({
       id: 'seed:margarita', name: 'Tommys Margarita', categoryId: 'cocktail', enabled: true,

@@ -12,22 +12,32 @@ describe('AppNav', () => {
   it('links to every top-level screen', () => {
     render(<AppNav />);
     expect(screen.getByRole('navigation', { name: 'Main navigation' })).toBeInTheDocument();
-    for (const label of ['Profiles', 'Drill', 'History', 'Stats', 'Drinks']) {
+    for (const label of ['Drill', 'Last run', 'Drinks']) {
       expect(screen.getByRole('link', { name: label })).toBeInTheDocument();
     }
   });
 
-  it('marks the screen you are on', () => {
-    pathname = '/history';
+  it('offers no analytics screens', () => {
     render(<AppNav />);
-    expect(screen.getByRole('link', { name: 'History' })).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('link', { name: 'Stats' })).not.toHaveAttribute('aria-current');
+    expect(screen.queryByRole('link', { name: 'History' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Stats' })).not.toBeInTheDocument();
   });
 
-  it('treats a session summary as part of History', () => {
-    pathname = '/summary/abc';
+  it('marks the screen you are on', () => {
+    pathname = '/results';
     render(<AppNav />);
-    expect(screen.getByRole('link', { name: 'History' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Last run' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Drinks' })).not.toHaveAttribute('aria-current');
+    // Drill specifically, and not merely as one more unmarked link: `/` is a
+    // prefix of every path here, so the exact-match guard in isCurrent is the
+    // only thing between this and Drill reading as current on every screen.
+    expect(screen.getByRole('link', { name: 'Drill' })).not.toHaveAttribute('aria-current');
+  });
+
+  it('marks Drill when the landing route is the one you are on', () => {
+    pathname = '/';
+    render(<AppNav />);
+    expect(screen.getByRole('link', { name: 'Drill' })).toHaveAttribute('aria-current', 'page');
   });
 
   it('disappears during a round, where a stray tap would discard it', () => {

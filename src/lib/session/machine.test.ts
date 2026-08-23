@@ -9,7 +9,7 @@ const ticket: TicketLine[] = [
 ];
 
 const config = { ...defaultSessionConfig(), roundCount: 2 };
-const fresh = () => createSession('s1', 'p1', config, 1_000);
+const fresh = () => createSession('s1', config, 1_000);
 
 describe('createSession', () => {
   it('starts resting with no rounds', () => {
@@ -139,7 +139,7 @@ describe('toRecord', () => {
     const state = sessionReducer(fresh(), { type: 'startRound', ticket, at: 0 });
     const record = toRecord(sessionReducer(state, { type: 'advance', at: 100_000 }));
     expect(record).toEqual({
-      id: 's1', profileId: 'p1', startedAt: 1_000, completedAt: null,
+      id: 's1', startedAt: 1_000, completedAt: null,
       config, rounds: expect.any(Array),
     });
     expect(record).not.toHaveProperty('current');

@@ -1,8 +1,27 @@
 # Bartender Speed Drill — Design Spec
 
 **Date:** 2026-08-19
-**Status:** Draft for review
+**Status:** Partly superseded — see below
 **Repo:** `ultimate-elite-drink-list`
+
+> **Superseded in part by
+> [`2026-08-21-single-run-drill-design.md`](./2026-08-21-single-run-drill-design.md).**
+>
+> That revision removes profiles and cross-session history: the app keeps one
+> run, the most recent, on the device. Read it alongside the following sections,
+> which it overrides —
+>
+> - **§3.4 Profiles** — deleted entirely; there are no users
+> - **§8 Screens** — `/history`, `/stats` and `/summary/[sessionId]` are gone,
+>   `/setup` moves to `/`, and `/results` replaces them
+> - **§9 Metrics** — the metrics still hold *within* a run; everything about
+>   history, trends and personal bests does not
+> - **§14 Build order** — phases 4 and 6 are withdrawn rather than completed
+> - **§16 Decision log** — two rows reversed, marked inline below
+>
+> Everything else here still stands and still describes the code: the drill
+> loop, generation, timing, the drink list and its transfer format, the visual
+> direction, error handling, accessibility, and the performance budget.
 
 ---
 
@@ -829,13 +848,13 @@ Phased so each phase is independently verifiable:
 |---|---|---|
 | Core loop | Physical speed drill, no grading | The score is the clock; no recipe data needed |
 | Drink list | Seeded in code, edited on device | Customizable per bar without a redeploy |
-| Users | Local named profiles | Shared training device, no auth cost |
+| Users | ~~Local named profiles~~ → **none** | *Reversed 2026-08-21.* An unbounded number of people share the device and none of them will make an account |
 | Quantities | Workload-banded, raw units | Uniform random swings ~8×, making the 4:00 goal meaningless |
 | Band units | Raw drinks, not effort-weighted | Simpler; nothing to mis-tune |
 | Between rounds | Indefinite untimed hold | User-specified |
 | Configurable | Rounds, difficulty, goal, categories | All four requested |
 | Environment | Desktop/tablet-first, dense | Training room, not bar top |
-| Scope | Drill + analytics | Review value is where the payoff is at a desk |
+| Scope | ~~Drill + analytics~~ → **drill + the run you just did** | *Reversed 2026-08-21.* Nobody compares their times to anyone else's, or to their own from last month |
 | Stack | Next.js static on Vercel, no backend | Vercel-native; leaves room for a future leaderboard |
 | Timing | `Date.now()` deltas, never tick accumulation | Interval counters drift and freeze when backgrounded |
 | Categories | Closed union, code-owned | Compile-time safety; runtime category creation is a feature nobody asked for |

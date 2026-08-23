@@ -1,0 +1,51 @@
+/* src/styles/surfaces.css
+ *
+ * Page-surface styles shared by more than one screen: the lede under a
+ * heading, the empty-state box, and the stat blocks. These lived in the
+ * history screen's stylesheet and were imported from /drinks, which meant
+ * deleting that screen would have quietly unstyled a screen that stays.
+ */
+
+/* One rule, and the shorthand form: the landing screen carried a second copy
+   of this class that also set a bottom margin. Two renderings of one class is
+   bad enough, but a client-side navigation keeps the previous route's
+   stylesheet loaded — so which of the two /drinks and /results got depended on
+   whether you arrived by tapping a nav link or by loading the URL. */
+.lede { color: var(--color-muted); margin: calc(var(--space-1) * -1) 0 var(--space-3); }
+
+.empty {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-3);
+  border: 1px dashed var(--color-line);
+  border-radius: var(--radius);
+  color: var(--color-muted);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
+}
+
+.stat dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-muted);
+}
+
+.stat__value {
+  margin: 0;
+  font-size: clamp(1.5rem, 1rem + 2vw, 2.25rem);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat__value[data-verdict='pass'] { color: var(--color-pass); }
+.stat__value[data-verdict='miss'] { color: var(--color-miss); }
+
+/* Positions the verdict word .eyebrow already supplies the type for: its own
+   line below the value, not jammed against it. Colour comes from inheriting
+   .stat__value[data-verdict]'s pass/miss colour — this rule is layout only. */
+.stat__verdict { display: block; margin-top: 0.15em; }

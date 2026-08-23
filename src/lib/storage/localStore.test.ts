@@ -9,10 +9,16 @@ afterEach(() => {
 
 describe('STORAGE_KEYS', () => {
   it('namespaces every key under ueddl:v1', () => {
-    expect(STORAGE_KEYS.drinks).toBe('ueddl:v1:drinks');
-    expect(STORAGE_KEYS.prefs('p1')).toBe('ueddl:v1:profile:p1:prefs');
-    expect(STORAGE_KEYS.sessionIndex('p1')).toBe('ueddl:v1:profile:p1:session-index');
-    expect(STORAGE_KEYS.session('s1')).toBe('ueddl:v1:session:s1');
+    // Asserted as a whole rather than spot-checked: this pins the five keys
+    // the device keeps as well as the prefix, so an accidental sixth shows up
+    // here rather than in someone's browser.
+    expect(Object.values(STORAGE_KEYS)).toEqual([
+      'ueddl:v1:drinks',
+      'ueddl:v1:theme',
+      'ueddl:v1:prefs',
+      'ueddl:v1:active-session',
+      'ueddl:v1:last-run',
+    ]);
   });
 });
 

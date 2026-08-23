@@ -6,13 +6,13 @@
 // they will differ on font rasterisation alone, so regenerate rather than
 // debug if this suite is ever run elsewhere.
 import { expect, test, type Page } from '@playwright/test';
-import { createProfile, seedHistory, seedSevenDrinks } from './helpers';
+import { seedLastRun, seedSevenDrinks } from './helpers';
 
 const WIDTHS = [320, 768, 1024, 1440] as const;
 const THEMES = ['light', 'dark'] as const;
 
 async function open(page: Page, theme: string, go: (page: Page) => Promise<void>) {
-  await createProfile(page);
+  await page.goto('/');
   await page.evaluate((t) => localStorage.setItem('ueddl:v1:theme', JSON.stringify(t)), theme);
   await page.reload();
   await go(page);
@@ -20,7 +20,9 @@ async function open(page: Page, theme: string, go: (page: Page) => Promise<void>
 
 const startRound = async (page: Page) => {
   await seedSevenDrinks(page);
-  await page.getByRole('link', { name: 'Drill' }).click();
+  // A real navigation, not a no-op: the seeded list is only picked up by a
+  // fresh mount of the screen that reads it.
+  await page.goto('/');
   await page.getByRole('button', { name: 'Start session' }).click();
   await page.getByRole('button', { name: 'Start round 1' }).click();
   await expect(page.getByRole('list', { name: 'Round ticket' })).toBeVisible();
@@ -46,9 +48,8 @@ interface Screen {
 
 const screens: readonly Screen[] = [
   {
-    name: 'setup',
+    name: 'drill',
     go: async (page) => {
-      await page.getByRole('link', { name: 'Drill' }).click();
       await expect(page.getByRole('heading', { name: 'Set up a session' })).toBeVisible();
     },
   },
@@ -67,19 +68,11 @@ const screens: readonly Screen[] = [
     volatile: ['.rest__units'],
   },
   {
-    name: 'stats',
+    name: 'results',
     go: async (page) => {
-      await seedHistory(page);
-      await page.goto('/stats');
-      await expect(page.getByRole('heading', { name: 'Stats' })).toBeVisible();
-    },
-  },
-  {
-    name: 'history',
-    go: async (page) => {
-      await seedHistory(page);
-      await page.goto('/history');
-      await expect(page.getByRole('heading', { name: 'History' })).toBeVisible();
+      await seedLastRun(page);
+      await page.goto('/results');
+      await expect(page.getByRole('heading', { name: 'Last run' })).toBeVisible();
     },
   },
   {
@@ -114,8 +107,11 @@ for (const width of [320, 375, 768, 1024, 1440, 1920]) {
   test(`no horizontal overflow at ${width}`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await open(page, 'dark', async () => {});
+    // /results is checked populated: its per-round table is the widest thing
+    // on any of these screens, so an empty frame would prove nothing.
+    await seedLastRun(page);
 
-    for (const path of ['/', '/setup', '/history', '/stats', '/drinks']) {
+    for (const path of ['/', '/results', '/drinks']) {
       await page.goto(path);
       await expect(page.getByRole('heading').first()).toBeVisible();
 

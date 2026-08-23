@@ -12,7 +12,7 @@ import {
 import { averageMs } from '@/lib/session/metrics';
 import { systemRng } from '@/lib/session/rng';
 import {
-  clearActiveSession, commitSession, loadActiveSession, saveActiveSession,
+  clearActiveSession, loadActiveSession, saveActiveSession, saveLastRun,
 } from '@/lib/session/repository';
 import type { RoundRecord } from '@/lib/session/types';
 import type { WriteOutcome } from '@/lib/storage/localStore';
@@ -23,8 +23,8 @@ export interface SessionMachine {
   readonly elapsedMs: number;
   readonly averageMs: number | null;
   readonly lastRound: RoundRecord | null;
-  /** Non-null when the last write failed. 'quota' means history needs pruning. */
   /**
+   * Non-null when the last write failed.
    * Derived from WriteOutcome rather than restated, so it cannot drift from it.
    * Two separate stale-union bugs in this plan came from restating a type by hand.
    */
@@ -34,6 +34,8 @@ export interface SessionMachine {
   resume(): void;
   advance(): void;
   end(): void;
+  /** Scraps the run: nothing is recorded, and the backup is discarded. */
+  startOver(): void;
 }
 
 export function useSessionMachine(): SessionMachine {
@@ -47,9 +49,9 @@ export function useSessionMachine(): SessionMachine {
     const restored = loadActiveSession();
     stateRef.current = restored;
     drinksRef.current = loadDrinkList();
-    // Same deliberate one-time-after-mount hydration idiom as useHydrated /
-    // ProfileProvider / the setup page: a single effect that loads the
-    // persisted snapshot and flips hydrated, not a subscription.
+    // Same deliberate one-time-after-mount hydration idiom as useHydrated and
+    // the setup screen: a single effect that loads the persisted snapshot and
+    // flips hydrated, not a subscription.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setState(restored);
     setHydrated(true);
@@ -67,12 +69,21 @@ export function useSessionMachine(): SessionMachine {
     stateRef.current = next;
     let outcome;
     if (next.status === 'complete') {
-      outcome = commitSession(toRecord(next));
-      // Only clear the crash-recovery backup once the commit actually lands —
-      // if commitSession fails (e.g. quota), the backup is the only copy of
-      // every completed round, and deleting it here would destroy the session
-      // React still has rendered on screen.
+      outcome = saveLastRun(toRecord(next));
+      // Only clear the crash-recovery backup once the write actually lands —
+      // if it fails (e.g. quota), the backup is the only copy of every
+      // completed round, and deleting it here would destroy the run React
+      // still has rendered on screen.
+      //
+      // Refreshed rather than merely kept, because "kept" left it a round
+      // short: the last round is only ever written through saveLastRun, so a
+      // backup last touched by the previous action holds the run minus the
+      // round that just finished. /play replaces the route immediately after
+      // this, so whatever is in the slot now is the whole of what survives.
+      // Its own outcome is discarded on purpose — the failure worth reporting
+      // is that the run was not saved, which `outcome` already carries.
       if (outcome === 'ok') clearActiveSession();
+      else saveActiveSession(next);
     } else {
       outcome = saveActiveSession(next);
     }
@@ -98,6 +109,16 @@ export function useSessionMachine(): SessionMachine {
   const advance = useCallback(() => apply({ type: 'advance', at: Date.now() }), [apply]);
   const end = useCallback(() => apply({ type: 'end', at: Date.now() }), [apply]);
 
+  const startOver = useCallback(() => {
+    // Deliberately not routed through `apply`: every other action persists
+    // what it produces, and the whole point of this one is that nothing about
+    // the scrapped run is written anywhere.
+    clearActiveSession();
+    stateRef.current = null;
+    setStorageWarning(null);
+    setState(null);
+  }, []);
+
   const running = state?.status === 'running';
   // The ticker stops while paused, and that is safe: elapsedMs cancels `now`
   // out entirely once pausedAt is set, so a stale reading still renders right.
@@ -111,6 +132,6 @@ export function useSessionMachine(): SessionMachine {
     averageMs: state ? averageMs(state.rounds) : null,
     lastRound: state && state.rounds.length > 0 ? state.rounds[state.rounds.length - 1] : null,
     storageWarning,
-    startRound, pause, resume, advance, end,
+    startRound, pause, resume, advance, end, startOver,
   };
 }
