@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Archivo_Narrow, IBM_Plex_Sans } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
 import { AppNav } from '@/components/ui/AppNav';
 import { StorageBanner } from '@/components/ui/StorageBanner';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
@@ -62,6 +63,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ThemeToggle />
         </header>
         {children}
+        <Analytics />
       </body>
     </html>
   );
