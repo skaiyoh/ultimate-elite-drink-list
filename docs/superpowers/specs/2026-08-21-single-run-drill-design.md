@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-21
 **Status:** Implemented
-**Repo:** `ultimate-elite-drink-list`
+**Repo:** `ultimate-elite-bartending`
 **Revises:** `2026-08-19-bartender-speed-drill-design.md` §3.4, §8, §9, §14, §16
 
 ---

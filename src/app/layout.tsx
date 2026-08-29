@@ -29,7 +29,7 @@ const body = IBM_Plex_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'Ultimate Elite Drink List',
+  title: 'Ultimate Elite Bartending',
   description: 'Bartender service-speed drill.',
 };
 

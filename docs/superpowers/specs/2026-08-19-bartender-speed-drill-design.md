@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-19
 **Status:** Partly superseded — see below
-**Repo:** `ultimate-elite-drink-list`
+**Repo:** `ultimate-elite-bartending`
 
 > **Superseded in part by
 > [`2026-08-21-single-run-drill-design.md`](./2026-08-21-single-run-drill-design.md).**
