@@ -1,0 +1,26 @@
+{
+  "front_facing": {
+    "absinthe": 2, "amaretto": 3, "angostura-bitters": 1, "aperol": 3,
+    "blanco-tequila": 2, "bourbon": 2, "campari": 3, "cola": 3,
+    "dark-rum": 1, "dry-vermouth": 1, "ginger-beer": 2, "green-chartreuse": 1,
+    "hot-sauce": 2, "irish-whiskey": 2, "maraschino-liqueur": 1,
+    "peychauds-bitters": 3, "pisco": 1, "rye-whiskey": 2, "triple-sec": 3,
+    "white-rum": 1, "worcestershire-sauce": 2,
+
+    "cachaca": 4, "cranberry-juice": 5, "creme-de-cacao": 4,
+    "creme-de-violette": 4, "gin": 6, "grenadine": 4, "honey": 4,
+    "prosecco": 6, "scotch-whisky": 5, "simple-syrup": 4,
+    "tonic-water": 6, "vodka": 4
+  },
+  "marginal": {
+    "coffee-liqueur": 6, "cognac": 1, "grapefruit-soda": 1, "orange-juice": 5,
+    "orgeat": 2, "sweet-vermouth": 2, "tomato-juice": 4
+  },
+  "no_front_facing_label": ["club-soda", "cream-of-coconut", "heavy-cream"],
+  "no_label_by_nature": [
+    "black-pepper", "celery", "coarse-salt", "egg-white", "espresso", "ginger",
+    "grapefruit", "green-olives", "lemon", "lime", "maraschino-cherries",
+    "mint", "nutmeg", "orange", "passion-fruit", "peach", "pineapple-juice",
+    "sugar-cubes"
+  ]
+}

@@ -39,3 +39,13 @@ yarn-error.log*
 
 # superpowers SDD workspace (ledger, briefs, review packages)
 .superpowers/
+
+# ingredient source photos — 417 MB of Wikimedia originals.
+# Regenerate with scripts/ingredient-sprites/download_ingredient_photos.py
+# (then refetch.py for the pass-2 terms). Only the derived sprites are tracked.
+assets/ingredient-photos/
+assets/sprite-pilot/
+
+# python
+__pycache__/
+.venv-photos/

@@ -1,0 +1,567 @@
+{
+  "reference_mm": 330,
+  "reference_px": 64,
+  "sprites": {
+    "absinthe": {
+      "source": "absinthe-2.png",
+      "ml": 700,
+      "height_mm": 300,
+      "sizes": {
+        "32px": {
+          "w": 12,
+          "h": 29,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 24,
+          "h": 58,
+          "canvas": 64
+        }
+      }
+    },
+    "amaretto": {
+      "source": "amaretto-3.png",
+      "ml": 700,
+      "height_mm": 290,
+      "sizes": {
+        "32px": {
+          "w": 14,
+          "h": 28,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 27,
+          "h": 56,
+          "canvas": 64
+        }
+      }
+    },
+    "angostura-bitters": {
+      "source": "angostura-bitters-1.png",
+      "ml": 200,
+      "height_mm": 150,
+      "sizes": {
+        "32px": {
+          "w": 4,
+          "h": 15,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 9,
+          "h": 29,
+          "canvas": 64
+        }
+      }
+    },
+    "aperol": {
+      "source": "aperol-3.png",
+      "ml": 700,
+      "height_mm": 295,
+      "sizes": {
+        "32px": {
+          "w": 7,
+          "h": 29,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 14,
+          "h": 57,
+          "canvas": 64
+        }
+      }
+    },
+    "blanco-tequila": {
+      "source": "blanco-tequila-2.png",
+      "ml": 750,
+      "height_mm": 300,
+      "sizes": {
+        "32px": {
+          "w": 8,
+          "h": 29,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 16,
+          "h": 58,
+          "canvas": 64
+        }
+      }
+    },
+    "bourbon": {
+      "source": "bourbon-2.png",
+      "ml": 750,
+      "height_mm": 300,
+      "sizes": {
+        "32px": {
+          "w": 9,
+          "h": 29,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 18,
+          "h": 58,
+          "canvas": 64
+        }
+      }
+    },
+    "cachaca": {
+      "source": "cachaca-4.png",
+      "ml": 965,
+      "height_mm": 300,
+      "sizes": {
+        "32px": {
+          "w": 6,
+          "h": 29,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 13,
+          "h": 58,
+          "canvas": 64
+        }
+      }
+    },
+    "campari": {
+      "source": "campari-3.png",
+      "ml": 700,
+      "height_mm": 300,
+      "sizes": {
+        "32px": {
+          "w": 7,
+          "h": 29,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 14,
+          "h": 58,
+          "canvas": 64
+        }
+      }
+    },
+    "cola": {
+      "source": "cola-3.png",
+      "ml": 355,
+      "height_mm": 193,
+      "sizes": {
+        "32px": {
+          "w": 6,
+          "h": 19,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 11,
+          "h": 37,
+          "canvas": 64
+        }
+      }
+    },
+    "cranberry-juice": {
+      "source": "cranberry-juice-5.png",
+      "ml": 450,
+      "height_mm": 200,
+      "sizes": {
+        "32px": {
+          "w": 8,
+          "h": 19,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 16,
+          "h": 39,
+          "canvas": 64
+        }
+      }
+    },
+    "creme-de-cacao": {
+      "source": "creme-de-cacao-4.png",
+      "ml": 700,
+      "height_mm": 290,
+      "sizes": {
+        "32px": {
+          "w": 8,
+          "h": 28,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 16,
+          "h": 56,
+          "canvas": 64
+        }
+      }
+    },
+    "creme-de-violette": {
+      "source": "creme-de-violette-4.png",
+      "ml": 750,
+      "height_mm": 300,
+      "sizes": {
+        "32px": {
+          "w": 7,
+          "h": 29,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 14,
+          "h": 58,
+          "canvas": 64
+        }
+      }
+    },
+    "dark-rum": {
+      "source": "dark-rum-1.png",
+      "ml": 750,
+      "height_mm": 300,
+      "sizes": {
+        "32px": {
+          "w": 7,
+          "h": 29,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 15,
+          "h": 58,
+          "canvas": 64
+        }
+      }
+    },
+    "dry-vermouth": {
+      "source": "dry-vermouth-1.png",
+      "ml": 750,
+      "height_mm": 310,
+      "sizes": {
+        "32px": {
+          "w": 7,
+          "h": 30,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 14,
+          "h": 60,
+          "canvas": 64
+        }
+      }
+    },
+    "gin": {
+      "source": "gin-6.png",
+      "ml": 700,
+      "height_mm": 280,
+      "sizes": {
+        "32px": {
+          "w": 12,
+          "h": 27,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 24,
+          "h": 54,
+          "canvas": 64
+        }
+      }
+    },
+    "ginger-beer": {
+      "source": "ginger-beer-2.png",
+      "ml": 330,
+      "height_mm": 180,
+      "sizes": {
+        "32px": {
+          "w": 7,
+          "h": 17,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 14,
+          "h": 35,
+          "canvas": 64
+        }
+      }
+    },
+    "green-chartreuse": {
+      "source": "green-chartreuse-1.png",
+      "ml": 700,
+      "height_mm": 290,
+      "sizes": {
+        "32px": {
+          "w": 8,
+          "h": 28,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 15,
+          "h": 56,
+          "canvas": 64
+        }
+      }
+    },
+    "grenadine": {
+      "source": "grenadine-4.png",
+      "ml": 560,
+      "height_mm": 280,
+      "sizes": {
+        "32px": {
+          "w": 6,
+          "h": 27,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 11,
+          "h": 54,
+          "canvas": 64
+        }
+      }
+    },
+    "honey": {
+      "source": "honey-4.png",
+      "ml": 500,
+      "height_mm": 130,
+      "sizes": {
+        "32px": {
+          "w": 15,
+          "h": 13,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 28,
+          "h": 25,
+          "canvas": 64
+        }
+      }
+    },
+    "hot-sauce": {
+      "source": "hot-sauce-2.png",
+      "ml": 177,
+      "height_mm": 165,
+      "sizes": {
+        "32px": {
+          "w": 5,
+          "h": 16,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 10,
+          "h": 32,
+          "canvas": 64
+        }
+      }
+    },
+    "irish-whiskey": {
+      "source": "irish-whiskey-2.png",
+      "ml": 700,
+      "height_mm": 300,
+      "sizes": {
+        "32px": {
+          "w": 8,
+          "h": 29,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 16,
+          "h": 58,
+          "canvas": 64
+        }
+      }
+    },
+    "maraschino-liqueur": {
+      "source": "maraschino-liqueur-1.png",
+      "ml": 750,
+      "height_mm": 305,
+      "sizes": {
+        "32px": {
+          "w": 7,
+          "h": 30,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 13,
+          "h": 59,
+          "canvas": 64
+        }
+      }
+    },
+    "peychauds-bitters": {
+      "source": "peychauds-bitters-3.png",
+      "ml": 148,
+      "height_mm": 140,
+      "sizes": {
+        "32px": {
+          "w": 4,
+          "h": 14,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 9,
+          "h": 27,
+          "canvas": 64
+        }
+      }
+    },
+    "pisco": {
+      "source": "pisco-1.png",
+      "ml": 700,
+      "height_mm": 300,
+      "sizes": {
+        "32px": {
+          "w": 6,
+          "h": 29,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 12,
+          "h": 58,
+          "canvas": 64
+        }
+      }
+    },
+    "prosecco": {
+      "source": "prosecco-6.png",
+      "ml": 750,
+      "height_mm": 330,
+      "sizes": {
+        "32px": {
+          "w": 10,
+          "h": 32,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 19,
+          "h": 64,
+          "canvas": 64
+        }
+      }
+    },
+    "rye-whiskey": {
+      "source": "rye-whiskey-2.png",
+      "ml": 750,
+      "height_mm": 300,
+      "sizes": {
+        "32px": {
+          "w": 8,
+          "h": 29,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 16,
+          "h": 58,
+          "canvas": 64
+        }
+      }
+    },
+    "scotch-whisky": {
+      "source": "scotch-whisky-5.png",
+      "ml": 700,
+      "height_mm": 290,
+      "sizes": {
+        "32px": {
+          "w": 8,
+          "h": 28,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 16,
+          "h": 56,
+          "canvas": 64
+        }
+      }
+    },
+    "simple-syrup": {
+      "source": "simple-syrup-4.png",
+      "ml": 700,
+      "height_mm": 295,
+      "sizes": {
+        "32px": {
+          "w": 7,
+          "h": 29,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 14,
+          "h": 57,
+          "canvas": 64
+        }
+      }
+    },
+    "tonic-water": {
+      "source": "tonic-water-6.png",
+      "ml": 200,
+      "height_mm": 190,
+      "sizes": {
+        "32px": {
+          "w": 6,
+          "h": 18,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 12,
+          "h": 37,
+          "canvas": 64
+        }
+      }
+    },
+    "triple-sec": {
+      "source": "triple-sec-3.png",
+      "ml": 700,
+      "height_mm": 245,
+      "sizes": {
+        "32px": {
+          "w": 11,
+          "h": 24,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 21,
+          "h": 48,
+          "canvas": 64
+        }
+      }
+    },
+    "vodka": {
+      "source": "vodka-4.png",
+      "ml": 700,
+      "height_mm": 290,
+      "sizes": {
+        "32px": {
+          "w": 7,
+          "h": 28,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 15,
+          "h": 56,
+          "canvas": 64
+        }
+      }
+    },
+    "white-rum": {
+      "source": "white-rum-1.png",
+      "ml": 750,
+      "height_mm": 300,
+      "sizes": {
+        "32px": {
+          "w": 8,
+          "h": 29,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 16,
+          "h": 58,
+          "canvas": 64
+        }
+      }
+    },
+    "worcestershire-sauce": {
+      "source": "worcestershire-sauce-2.png",
+      "ml": 290,
+      "height_mm": 200,
+      "sizes": {
+        "32px": {
+          "w": 5,
+          "h": 19,
+          "canvas": 32
+        },
+        "64px": {
+          "w": 10,
+          "h": 39,
+          "canvas": 64
+        }
+      }
+    }
+  }
+}

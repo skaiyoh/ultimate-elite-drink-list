@@ -1,0 +1,139 @@
+{
+  "_note": "height_mm is the typical real height of the FORMAT shown in that photo, not a measurement of the photo. Volume alone can't drive scale: triple-sec (Cointreau, 700ml) is squat at 245mm while dry-vermouth (Dolin, 750ml) is 310mm.",
+  "_reference_mm": 330,
+  "_reference_px": 64,
+  "sizes": {
+    "absinthe": {
+      "ml": 700,
+      "height_mm": 300
+    },
+    "amaretto": {
+      "ml": 700,
+      "height_mm": 290
+    },
+    "angostura-bitters": {
+      "ml": 200,
+      "height_mm": 150
+    },
+    "aperol": {
+      "ml": 700,
+      "height_mm": 295
+    },
+    "blanco-tequila": {
+      "ml": 750,
+      "height_mm": 300
+    },
+    "bourbon": {
+      "ml": 750,
+      "height_mm": 300
+    },
+    "campari": {
+      "ml": 700,
+      "height_mm": 300
+    },
+    "cola": {
+      "ml": 355,
+      "height_mm": 193
+    },
+    "dark-rum": {
+      "ml": 750,
+      "height_mm": 300
+    },
+    "dry-vermouth": {
+      "ml": 750,
+      "height_mm": 310
+    },
+    "ginger-beer": {
+      "ml": 330,
+      "height_mm": 180
+    },
+    "green-chartreuse": {
+      "ml": 700,
+      "height_mm": 290
+    },
+    "hot-sauce": {
+      "ml": 177,
+      "height_mm": 165
+    },
+    "irish-whiskey": {
+      "ml": 700,
+      "height_mm": 300
+    },
+    "maraschino-liqueur": {
+      "ml": 750,
+      "height_mm": 305
+    },
+    "peychauds-bitters": {
+      "ml": 148,
+      "height_mm": 140
+    },
+    "pisco": {
+      "ml": 700,
+      "height_mm": 300
+    },
+    "rye-whiskey": {
+      "ml": 750,
+      "height_mm": 300
+    },
+    "triple-sec": {
+      "ml": 700,
+      "height_mm": 245
+    },
+    "white-rum": {
+      "ml": 750,
+      "height_mm": 300
+    },
+    "worcestershire-sauce": {
+      "ml": 290,
+      "height_mm": 200
+    },
+    "cachaca": {
+      "ml": 965,
+      "height_mm": 300
+    },
+    "cranberry-juice": {
+      "ml": 450,
+      "height_mm": 200
+    },
+    "creme-de-cacao": {
+      "ml": 700,
+      "height_mm": 290
+    },
+    "creme-de-violette": {
+      "ml": 750,
+      "height_mm": 300
+    },
+    "gin": {
+      "ml": 700,
+      "height_mm": 280
+    },
+    "grenadine": {
+      "ml": 560,
+      "height_mm": 280
+    },
+    "honey": {
+      "ml": 500,
+      "height_mm": 130
+    },
+    "prosecco": {
+      "ml": 750,
+      "height_mm": 330
+    },
+    "scotch-whisky": {
+      "ml": 700,
+      "height_mm": 290
+    },
+    "simple-syrup": {
+      "ml": 700,
+      "height_mm": 295
+    },
+    "tonic-water": {
+      "ml": 200,
+      "height_mm": 190
+    },
+    "vodka": {
+      "ml": 700,
+      "height_mm": 290
+    }
+  }
+}
