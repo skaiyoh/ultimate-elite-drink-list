@@ -38,6 +38,24 @@ peach fruit"` gave apple specimens, `"creme de violette"` gave airliners,
 `probe.py`'s replacements -- `"Prunus persica fruit"`, `"Rothman Winter creme de
 violette"`, `"Gordon's gin bottle"`.
 
+## Hard edges
+
+Sprites are fully opaque or fully transparent — no partial alpha. This matters
+most at 32px, where a bottle is ~9px wide and almost every pixel is an edge
+pixel: resizing RGBA directly left 74% of visible pixels semi-transparent.
+
+`hard_resize()` premultiplies by alpha before filtering and divides it back out
+after, then thresholds coverage. Skipping the premultiply is the common bug —
+the filter averages edge colour against transparent neighbours whose RGB is
+black, so edges come out faded *and* darkened rather than just faded.
+
+Two tunables at the top of `build_scaled.py`:
+
+- `SOURCE_ALPHA_CUT` (140) — cuts u2net's feathered halo before scaling, so no
+  background-tinted pixel is fed into the filter. Also bounds the crop box.
+- `EDGE_ALPHA_CUT` (128) — coverage a destination pixel needs to survive.
+  Lower fattens the silhouette, higher thins it.
+
 ## Data files
 
 - `picks-final.json` — the hand-classified pick per ingredient. All 61 are
